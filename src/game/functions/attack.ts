@@ -1,0 +1,308 @@
+import {Game} from "../models/Game";
+import {CountryName} from "../constants/CountryName";
+import p5Types from "p5";
+
+export function attack(p5: p5Types,game: Game, from: CountryName, to: CountryName, numberOfDices: number = 3, ) {
+    const attackingPlayer = game.playerTurn
+
+    const fromTerritory = attackingPlayer.territories.find(t => t.name === from)
+    if(!fromTerritory) throw `Territory ${from} does not belong to attacking player ${attackingPlayer.name}`
+
+    const terrAndPlayer = getTerritoryAndPLayerFromName(to, game)
+    if(!terrAndPlayer) throw `Territory ${to} does not belong to any player`
+
+    const {territory: toTerritory, player: attackedPLayer} = terrAndPlayer
+
+    const defendingNumber = toTerritory.soldiers;
+
+    console.log(fromTerritory.soldiers +" "+ defendingNumber)
+
+    let attackingNumber = fromTerritory.soldiers - 1;
+
+    let result;
+    if(numberOfDices === 3) {
+         result = threeDice(attackingNumber, defendingNumber, p5);
+
+    } else if(numberOfDices === 2) {
+         result = twoDice(numberOfDices, defendingNumber, p5);
+
+    } else if(numberOfDices === 1) {
+         result = oneDice(numberOfDices, defendingNumber, p5);
+
+    } else throw 'number of dices is '+ numberOfDices;
+
+    const attackingSoldersLeft = result[0]
+
+    if(attackingSoldersLeft === 0) { //attacking finished in this part no more soldiers to attack
+        console.log("attacking finished from this state no more soldiers to attack");
+        fromTerritory.soldiers = 1;
+    } else if(result[1] === 0) { //occupy territory
+        console.log(attackingSoldersLeft + " moving to " + to);
+
+        attackedPLayer.removeTerritory(to)
+        toTerritory.soldiers = attackingSoldersLeft
+        attackingPlayer.addTerritory(toTerritory)
+
+        //make player able to draw a card
+        attackingPlayer.hasOccupiedTerritory = true;
+
+        //change number of soldiers to attacking territory to 1
+        fromTerritory.soldiers = 1;
+
+        let playerWins = game.hasCurrentPlayerWon();
+
+        if(playerWins) {
+            game.winner = attackingPlayer;
+            console.log(attackingPlayer.name + " won!!!");
+        }
+
+        //check if attacked player is out of game
+       if(attackedPLayer.isPlayerOutOfGame()) {
+           console.log('player '+ attackedPLayer.name + " is out of game.")
+       }
+    }
+}
+
+
+function threeDice(attackingNumber: number, defendingNumber: number, p5: p5Types): [number, number] {
+    if(attackingNumber < 3 ) throw 'attacking number is '+ attackingNumber +". Must be 3";
+
+
+    if(defendingNumber === 0) {
+        return [attackingNumber, 0]
+    }
+    if(attackingNumber === 0){
+        return [0, defendingNumber]
+    }
+
+    if(defendingNumber === 1) { //1 defending dice
+        let attackersDice = p5.max(getRandomDice(), p5.max(getRandomDice(), getRandomDice()));
+        let defenderDice = getRandomDice();
+
+        if(attackersDice > defenderDice) {
+            defendingNumber--;
+        } else {
+            attackingNumber--;
+        }
+
+
+        if(attackingNumber>=3) {
+            return threeDice(attackingNumber, defendingNumber, p5);
+        } else if(attackingNumber === 2) {
+            return twoDice(attackingNumber, defendingNumber, p5);
+        }
+         else throw 'Attackers are ' + attackingNumber;
+    }
+    else if(defendingNumber >= 2){ //2 defending dice
+        let attackerDice1 = getRandomDice(), attackerDice2 = getRandomDice(), attackerDice3 = getRandomDice(),
+            defenderDice1 = getRandomDice(), defenderDice2 = getRandomDice();
+
+        let attackerDiceBig = p5.max(attackerDice1, p5.max(attackerDice2, attackerDice3));
+        let attackerDiceSmall = [attackerDice1,attackerDice2,attackerDice3].sort()[1];
+        let defenderDiceBig = p5.max(defenderDice1, defenderDice2), defenderDiceSmall = p5.max(defenderDice1, defenderDice2);
+
+        if(attackerDiceBig > defenderDiceBig) {
+            defendingNumber--;
+        } else {
+            attackingNumber--;
+        }
+        if(attackerDiceSmall > defenderDiceSmall) {
+            defendingNumber--;
+        } else {
+            attackingNumber--;
+        }
+
+        if(attackingNumber>=3) {
+            return threeDice(attackingNumber, defendingNumber, p5);
+        } else if(attackingNumber === 2) {
+            return twoDice(attackingNumber, defendingNumber, p5);
+        } else if(attackingNumber === 1) {
+            return oneDice(attackingNumber, defendingNumber, p5);
+        }else if(attackingNumber === 0){
+            return [0, defendingNumber]
+        }
+        else throw 'Attackers are ' + attackingNumber;
+
+    } else throw 'defenders are '+ defendingNumber;
+
+}
+
+function twoDice(attackingNumber: 2, defendingNumber: number, p5: p5Types): [number, number]  {
+    if(attackingNumber !== 2) throw 'attacking number is '+ attackingNumber +". Must be 2";
+
+
+    if(defendingNumber === 0) {
+        return [attackingNumber, 0]
+    }
+
+    if(defendingNumber === 1) { //1 defending dice
+        let attackersDice = p5.max(getRandomDice(), getRandomDice());
+        let defenderDice = getRandomDice();
+
+        if(attackersDice > defenderDice) {
+            defendingNumber--;
+        } else {
+            attackingNumber--;
+        }
+
+        if(attackingNumber === 2) {
+            return twoDice(attackingNumber, defendingNumber, p5);
+        } else if(attackingNumber === 1) {
+            return oneDice(attackingNumber, defendingNumber, p5);
+        }
+         else throw 'Attackers are ' + attackingNumber;
+    }
+
+    else if(defendingNumber >= 2){ //2 defending dice
+        let attackerDice1 = getRandomDice(), attackerDice2 = getRandomDice(),
+            defenderDice1 = getRandomDice(), defenderDice2 = getRandomDice();
+
+        let attackerDiceBig = p5.max(attackerDice1, attackerDice2), attackerDiceSmall = p5.min(attackerDice1, attackerDice2);
+        let defenderDiceBig = p5.max(defenderDice1, defenderDice2), defenderDiceSmall = p5.min(defenderDice1, defenderDice2);
+
+        if(attackerDiceBig > defenderDiceBig) {
+            defendingNumber--;
+        } else {
+            attackingNumber--;
+        }
+        if(attackerDiceSmall > defenderDiceSmall) {
+            defendingNumber--;
+        } else {
+            attackingNumber--;
+        }
+
+
+        if(attackingNumber === 2) {
+            return twoDice(attackingNumber, defendingNumber, p5);
+        } else if(attackingNumber === 1) {
+            return oneDice(attackingNumber, defendingNumber, p5);
+        }else if(attackingNumber === 0){
+            return [0, defendingNumber]
+        }
+        else throw 'Attackers are ' + attackingNumber;
+
+    } else throw 'defenders are '+ defendingNumber;
+}
+
+function oneDice(attackingNumber: 1, defendingNumber: number, p5: p5Types): [number, number]  {
+
+    if(defendingNumber === 0) {
+        return [attackingNumber, 0]
+    }
+
+    if(defendingNumber === 1) { //1 defending dice
+        let attackersDice = getRandomDice();
+        let defenderDice = getRandomDice();
+
+        if(attackersDice > defenderDice) {
+            defendingNumber--;
+        } else {
+            attackingNumber--;
+        }
+
+        if(attackingNumber === 1) {
+            return oneDice(attackingNumber, defendingNumber, p5);
+        } else if(attackingNumber === 0){
+            return [0, defendingNumber]
+        }
+        else throw 'Attackers are ' + attackingNumber;
+    }
+    else if(defendingNumber >= 2){ //2 defending dice
+        let attackersDice = getRandomDice();
+        let defenderDice = p5.max(getRandomDice(), getRandomDice());
+
+        if(attackersDice > defenderDice) {
+            defendingNumber--;
+        } else {
+            attackingNumber--;
+        }
+
+        if(attackingNumber === 1) {
+            return oneDice(attackingNumber, defendingNumber, p5);
+        } else if(attackingNumber === 0){
+            return [0, defendingNumber]
+        }
+        else throw 'Attackers are ' + attackingNumber;
+
+
+    } else throw 'defenders are '+ defendingNumber;
+}
+
+function getRandomDice() {
+    return Math.floor( Math.random() * 6 ) +1;
+}
+
+function getTerritoryAndPLayerFromName(territoryToFind: CountryName, game: Game) {
+    for (let player of game.players) {
+        for (let territory of player.territories) {
+            if(territoryToFind === territory.name){
+                return {territory,player};
+            }
+        }
+    }
+}
+
+var count=0;
+function canMoveToTerritory() {
+
+    let TerritoryFrom = game.playerTurn.territories.find(e => e.name === moveSoldiersFromState);
+
+
+    //modifies isInPlayersTerritoryTree
+    searchInBorders(activeState, TerritoryFrom, game.playerTurn.territories,);
+
+
+    if(isInPlayersTerritoryTree) {
+        isInPlayersTerritoryTree = false; //reset
+        count = 0;
+        return true;
+    }
+    return false;
+}
+
+
+function searchInBorders(toTerritory, fromTerritoryObj, playerTerritories, previousFromTerritory) {
+    for (let bt of fromTerritoryObj.borders) {
+        count ++;
+        if(count > 1000) {
+            count = 0;
+            break;
+        }
+
+        //do not check territory that we came from
+        if(bt === previousFromTerritory) continue;
+
+        //get territory object from territory name
+        let playerTerritory = playerTerritories.find(e => e.name === bt);
+
+        // if this border territory does not belong to this player skip this search
+        if(playerTerritory === undefined) continue;
+
+        if(bt === toTerritory) {
+            isInPlayersTerritoryTree = true;
+            return;
+        } else {
+            searchInBorders(toTerritory, playerTerritory, playerTerritories, fromTerritoryObj.name)
+        }
+
+    }
+}
+
+
+function soldiersByStars(stars) {
+    if(stars>10) return 30;
+
+    switch (stars) {
+        case 1: return 1;
+        case 2: return 2;
+        case 3: return 4;
+        case 4: return 7;
+        case 5: return 10;
+        case 6: return 13;
+        case 7: return 17;
+        case 8: return 21;
+        case 9: return 25;
+        case 10: return 30;
+        default: throw 'please add a valid number of stars. (1 or more)'
+    }
+}
