@@ -60,14 +60,16 @@ export const PlayersTable = (props: PlayersTableProps) => {
             <TableBody>
                 {players?.map(p => {
                     const playerHasTurn = game?.playerTurn.name === p.name
-                    return <TableRow className={playerHasTurn ? 'playerHasTurn' : ''}>
-                        <TableCell>{<PlayerTypeSwitch onChange={(e) => setPlayerType('type', e.target.checked ? 'human' : 'computer',p)} checked={p.type === 'human'} disabled={!!game}/>}</TableCell>
-                        <TableCell>{game? p.name : <Input onChange={e => setPlayerType('name', e.target.value, p)} value={p.name}/>}</TableCell>
-                        <TableCell>{p.territories.length}</TableCell>
-                        <TableCell>{p.cards.length}</TableCell>
-                        <TableCell>{playerHasTurn && game ? game?.soldierToPut : 0}</TableCell>
-                        <TableCell>{p.name}</TableCell>
-                        <TableCell>{p.name}</TableCell>
+                    const tableCellStyle = {color: p.color}
+
+                    return <TableRow  className={playerHasTurn ? 'playerHasTurn' : ''}>
+                        <TableCell style={tableCellStyle}>{<PlayerTypeSwitch onChange={(e) => setPlayerType('type', e.target.checked ? 'human' : 'computer',p)} checked={p.type === 'human'} disabled={!!game}/>}</TableCell>
+                        <TableCell style={tableCellStyle}>{game? p.name : <Input onChange={e => setPlayerType('name', e.target.value, p)} value={p.name}/>}</TableCell>
+                        <TableCell style={tableCellStyle}>{p.territories.length}</TableCell>
+                        <TableCell style={tableCellStyle}>{p.cards.length}</TableCell>
+                        <TableCell style={tableCellStyle}>{playerHasTurn && game ? game?.soldierToPut : 0}</TableCell>
+                        <TableCell style={tableCellStyle}>{p.name}</TableCell>
+                        <TableCell style={tableCellStyle}>{p.name}</TableCell>
                     </TableRow>
                 })}
             </TableBody>

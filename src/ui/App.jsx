@@ -1,11 +1,13 @@
 import React, {useEffect} from 'react';
 import {SketchContainer} from "../sketch/SketchContainer";
 import {ButtonsContainer} from "./components/ButtonsContainer";
-import {setGameObject, deleteNews, setPlayers, updatePlayersTable} from "../redux/actions";
-import { useSelector, useDispatch } from 'react-redux'
+import {setPlayers} from "../redux/actions";
+import {useDispatch} from 'react-redux'
 import {Player} from "../game/models/Player";
 import {PlayersTable} from "./components/PlayersTable";
 import {TerritoryModal} from "./components/TerritoryModal/TerritoryModal";
+import {GameStatusView} from "./components/GameStatusView";
+import "./style.css"
 
 if(window.c === undefined)
 window.c = 0
@@ -34,7 +36,10 @@ if(window.c < 10) {
 
     return (
         <div>
-            <ButtonsContainer/>
+            <div className='header'>
+                <ButtonsContainer/>
+                <GameStatusView/>
+            </div>
             <SketchContainer/>
             <PlayersTable/>
             <TerritoryModal/>

@@ -235,16 +235,16 @@ export class Game {
 }
 
 export enum gameState {
-    newGame='newGame',
-    cardsDistributed='cardsDistributed',
-    soldersDistributed='soldersDistributed',
-    newTurn='newTurn',
-    finishedNewTurnSoldiers='finishedNewTurnSoldiers',
-    attackTo='attackTo',
-    attackFinished='attackFinished',
-    moveSoldiersTo='moveSoldiersTo',
-    finishTurn='finishTurn',
-};
+    newGame='New Game',
+    cardsDistributed='Cards Distributed',
+    soldersDistributed='Solders Distributed',
+    newTurn='New Turn',
+    finishedNewTurnSoldiers='Finished New Turn Soldiers',
+    attackTo='Attack To',
+    attackFinished='Attack Finished',
+    moveSoldiersTo='Move Soldiers To',
+    finishTurn='Finish Turn',
+}
 
 export enum AttackFromToCases {
     YOUR_OWN_TERRITORY = 'Can not attack your territory',
