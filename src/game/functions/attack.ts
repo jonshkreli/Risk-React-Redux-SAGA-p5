@@ -2,7 +2,7 @@ import {Game} from "../models/Game";
 import {CountryName} from "../constants/CountryName";
 import p5Types from "p5";
 
-export function attack(p5: p5Types,game: Game, from: CountryName, to: CountryName, numberOfDices: number = 3, ) {
+export function attack(game: Game, from: CountryName, to: CountryName, numberOfDices: number = 3, ) {
     const attackingPlayer = game.playerTurn
 
     const fromTerritory = attackingPlayer.territories.find(t => t.name === from)
@@ -21,13 +21,13 @@ export function attack(p5: p5Types,game: Game, from: CountryName, to: CountryNam
 
     let result;
     if(numberOfDices === 3) {
-         result = threeDice(attackingNumber, defendingNumber, p5);
+         result = threeDice(attackingNumber, defendingNumber);
 
     } else if(numberOfDices === 2) {
-         result = twoDice(numberOfDices, defendingNumber, p5);
+         result = twoDice(numberOfDices, defendingNumber);
 
     } else if(numberOfDices === 1) {
-         result = oneDice(numberOfDices, defendingNumber, p5);
+         result = oneDice(numberOfDices, defendingNumber);
 
     } else throw 'number of dices is '+ numberOfDices;
 
@@ -64,7 +64,7 @@ export function attack(p5: p5Types,game: Game, from: CountryName, to: CountryNam
 }
 
 
-function threeDice(attackingNumber: number, defendingNumber: number, p5: p5Types): [number, number] {
+function threeDice(attackingNumber: number, defendingNumber: number): [number, number] {
     if(attackingNumber < 3 ) throw 'attacking number is '+ attackingNumber +". Must be 3";
 
 
@@ -76,7 +76,7 @@ function threeDice(attackingNumber: number, defendingNumber: number, p5: p5Types
     }
 
     if(defendingNumber === 1) { //1 defending dice
-        let attackersDice = p5.max(getRandomDice(), p5.max(getRandomDice(), getRandomDice()));
+        let attackersDice = Math.max(getRandomDice(), Math.max(getRandomDice(), getRandomDice()));
         let defenderDice = getRandomDice();
 
         if(attackersDice > defenderDice) {
@@ -87,9 +87,9 @@ function threeDice(attackingNumber: number, defendingNumber: number, p5: p5Types
 
 
         if(attackingNumber>=3) {
-            return threeDice(attackingNumber, defendingNumber, p5);
+            return threeDice(attackingNumber, defendingNumber);
         } else if(attackingNumber === 2) {
-            return twoDice(attackingNumber, defendingNumber, p5);
+            return twoDice(attackingNumber, defendingNumber);
         }
          else throw 'Attackers are ' + attackingNumber;
     }
@@ -97,9 +97,9 @@ function threeDice(attackingNumber: number, defendingNumber: number, p5: p5Types
         let attackerDice1 = getRandomDice(), attackerDice2 = getRandomDice(), attackerDice3 = getRandomDice(),
             defenderDice1 = getRandomDice(), defenderDice2 = getRandomDice();
 
-        let attackerDiceBig = p5.max(attackerDice1, p5.max(attackerDice2, attackerDice3));
+        let attackerDiceBig = Math.max(attackerDice1, Math.max(attackerDice2, attackerDice3));
         let attackerDiceSmall = [attackerDice1,attackerDice2,attackerDice3].sort()[1];
-        let defenderDiceBig = p5.max(defenderDice1, defenderDice2), defenderDiceSmall = p5.max(defenderDice1, defenderDice2);
+        let defenderDiceBig = Math.max(defenderDice1, defenderDice2), defenderDiceSmall = Math.max(defenderDice1, defenderDice2);
 
         if(attackerDiceBig > defenderDiceBig) {
             defendingNumber--;
@@ -113,11 +113,11 @@ function threeDice(attackingNumber: number, defendingNumber: number, p5: p5Types
         }
 
         if(attackingNumber>=3) {
-            return threeDice(attackingNumber, defendingNumber, p5);
+            return threeDice(attackingNumber, defendingNumber);
         } else if(attackingNumber === 2) {
-            return twoDice(attackingNumber, defendingNumber, p5);
+            return twoDice(attackingNumber, defendingNumber);
         } else if(attackingNumber === 1) {
-            return oneDice(attackingNumber, defendingNumber, p5);
+            return oneDice(attackingNumber, defendingNumber);
         }else if(attackingNumber === 0){
             return [0, defendingNumber]
         }
@@ -127,7 +127,7 @@ function threeDice(attackingNumber: number, defendingNumber: number, p5: p5Types
 
 }
 
-function twoDice(attackingNumber: 2, defendingNumber: number, p5: p5Types): [number, number]  {
+function twoDice(attackingNumber: 2, defendingNumber: number): [number, number]  {
     if(attackingNumber !== 2) throw 'attacking number is '+ attackingNumber +". Must be 2";
 
 
@@ -136,7 +136,7 @@ function twoDice(attackingNumber: 2, defendingNumber: number, p5: p5Types): [num
     }
 
     if(defendingNumber === 1) { //1 defending dice
-        let attackersDice = p5.max(getRandomDice(), getRandomDice());
+        let attackersDice = Math.max(getRandomDice(), getRandomDice());
         let defenderDice = getRandomDice();
 
         if(attackersDice > defenderDice) {
@@ -146,9 +146,9 @@ function twoDice(attackingNumber: 2, defendingNumber: number, p5: p5Types): [num
         }
 
         if(attackingNumber === 2) {
-            return twoDice(attackingNumber, defendingNumber, p5);
+            return twoDice(attackingNumber, defendingNumber);
         } else if(attackingNumber === 1) {
-            return oneDice(attackingNumber, defendingNumber, p5);
+            return oneDice(attackingNumber, defendingNumber);
         }
          else throw 'Attackers are ' + attackingNumber;
     }
@@ -157,8 +157,8 @@ function twoDice(attackingNumber: 2, defendingNumber: number, p5: p5Types): [num
         let attackerDice1 = getRandomDice(), attackerDice2 = getRandomDice(),
             defenderDice1 = getRandomDice(), defenderDice2 = getRandomDice();
 
-        let attackerDiceBig = p5.max(attackerDice1, attackerDice2), attackerDiceSmall = p5.min(attackerDice1, attackerDice2);
-        let defenderDiceBig = p5.max(defenderDice1, defenderDice2), defenderDiceSmall = p5.min(defenderDice1, defenderDice2);
+        let attackerDiceBig = Math.max(attackerDice1, attackerDice2), attackerDiceSmall = Math.min(attackerDice1, attackerDice2);
+        let defenderDiceBig = Math.max(defenderDice1, defenderDice2), defenderDiceSmall = Math.min(defenderDice1, defenderDice2);
 
         if(attackerDiceBig > defenderDiceBig) {
             defendingNumber--;
@@ -173,9 +173,9 @@ function twoDice(attackingNumber: 2, defendingNumber: number, p5: p5Types): [num
 
 
         if(attackingNumber === 2) {
-            return twoDice(attackingNumber, defendingNumber, p5);
+            return twoDice(attackingNumber, defendingNumber);
         } else if(attackingNumber === 1) {
-            return oneDice(attackingNumber, defendingNumber, p5);
+            return oneDice(attackingNumber, defendingNumber);
         }else if(attackingNumber === 0){
             return [0, defendingNumber]
         }
@@ -184,7 +184,7 @@ function twoDice(attackingNumber: 2, defendingNumber: number, p5: p5Types): [num
     } else throw 'defenders are '+ defendingNumber;
 }
 
-function oneDice(attackingNumber: 1, defendingNumber: number, p5: p5Types): [number, number]  {
+function oneDice(attackingNumber: 1, defendingNumber: number): [number, number]  {
 
     if(defendingNumber === 0) {
         return [attackingNumber, 0]
@@ -201,7 +201,7 @@ function oneDice(attackingNumber: 1, defendingNumber: number, p5: p5Types): [num
         }
 
         if(attackingNumber === 1) {
-            return oneDice(attackingNumber, defendingNumber, p5);
+            return oneDice(attackingNumber, defendingNumber);
         } else if(attackingNumber === 0){
             return [0, defendingNumber]
         }
@@ -209,7 +209,7 @@ function oneDice(attackingNumber: 1, defendingNumber: number, p5: p5Types): [num
     }
     else if(defendingNumber >= 2){ //2 defending dice
         let attackersDice = getRandomDice();
-        let defenderDice = p5.max(getRandomDice(), getRandomDice());
+        let defenderDice = Math.max(getRandomDice(), getRandomDice());
 
         if(attackersDice > defenderDice) {
             defendingNumber--;
@@ -218,7 +218,7 @@ function oneDice(attackingNumber: 1, defendingNumber: number, p5: p5Types): [num
         }
 
         if(attackingNumber === 1) {
-            return oneDice(attackingNumber, defendingNumber, p5);
+            return oneDice(attackingNumber, defendingNumber);
         } else if(attackingNumber === 0){
             return [0, defendingNumber]
         }

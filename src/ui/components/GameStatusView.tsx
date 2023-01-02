@@ -5,7 +5,7 @@ import {gameState} from "../../game/models/Game";
 import {canNotAttackOwnTerritoryMessage, territoryDoesNotBelongToPlayerMessage} from "./helperMessages";
 
 export const GameStatusView = () => {
-    const {game, clickedTerritoryFrom, clickedTerritoryTo} = useSelector((state: DefaultReducerStateType) => state);
+    const {game, clickedTerritoryFrom, clickedTerritoryTo, message: reducerMsg} = useSelector((state: DefaultReducerStateType) => state);
 
     if(!game) return <span>Game has not started yet</span>
 
@@ -13,7 +13,7 @@ export const GameStatusView = () => {
 
     const playerName = playerTurn.name
 
-    let message = `${playerName}: ${currentState} ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
+    let message = ''
 
     const territoryBelongToPlayer = !!clickedTerritoryFrom && game.doesTerritoryBelongToPlayer(clickedTerritoryFrom, playerTurn)
 
@@ -37,10 +37,10 @@ export const GameStatusView = () => {
         case gameState.finishedNewTurnSoldiers:
             message = `What does ${playerName} want to do?`
             break;
-        case gameState.attackTo:
+        case gameState.attackFrom:
             message = territoryBelongToPlayer ? canNotAttackOwnMessage : `${playerName}: is attacking from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
             break;
-        case gameState.moveSoldiersTo:
+        case gameState.moveSoldiersFrom:
             message = territoryBelongToPlayer ? 'How many solders do you want to move here?' : `${playerName}: is moving solders from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
             break;
         case gameState.finishTurn:
@@ -51,9 +51,11 @@ export const GameStatusView = () => {
             break;
     }
 
-
     return <div>
+        <div>{currentState}</div>
         <h3>Player {playerTurn.name} has {soldierToPut} available to put</h3>
         <h3>{message}</h3>
+        <div>{clickedTerritoryFrom} <span>-&gt;</span> {clickedTerritoryTo}</div>
+        <div>{reducerMsg}</div>
     </div>
 }

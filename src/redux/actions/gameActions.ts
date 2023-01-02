@@ -9,7 +9,8 @@ export type GameActions =
     SetGameObjectAction |
     CreatePlayersAction | AddPlayerAction | RemoveLastPlayerAction |
     SetRulesAction | SetSettingsAction |
-    ClickTerritoryAction
+    ClickTerritoryAction |
+    PlayerWantsToAttackAction
 
 export interface SetGameObjectAction {
     type: ReducerActionType.CREATE_GAME_OBJECT,
@@ -41,4 +42,7 @@ export interface SetSettingsAction {
 export interface ClickTerritoryAction {
     type: ReducerActionType.CLICK_TERRITORY,
     payload: { territory: CountryName | '', clickCoordinates: Point }
+}
+export interface PlayerWantsToAttackAction {
+    type: ReducerActionType.PLAYER_CHOOSE_ATTACKING_TO,
 }

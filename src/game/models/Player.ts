@@ -137,7 +137,7 @@ export class Player {
     }
 
     removeTerritory(territory: CountryName) {
-       this.territories.filter(t => t.name !== territory)
+        this.territories = this.territories.filter(t => t.name !== territory)
     }
 
     addTerritory(territory: Territory) {

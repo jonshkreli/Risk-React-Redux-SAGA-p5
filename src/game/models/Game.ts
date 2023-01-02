@@ -4,6 +4,8 @@ import {PlayerColors, rules, Rules, SettingsInterface} from "../constants/settin
 import {ContinentName} from "../constants/continents";
 import {generateEmptyContinentsWithNumber, shuffleArray} from "../functions/smallUtils";
 import {CountryName} from "../constants/CountryName";
+import {attack} from "../functions/attack";
+import {Territory} from "../constants/Territory";
 
 export class Game {
 
@@ -202,7 +204,19 @@ export class Game {
     canPlayerAttackFromTo(from: CountryName, to: CountryName, player: Player = this.playerTurn) {
         if (from === to) return {status: AttackFromToCases.YOUR_OWN_TERRITORY,}
 
-        const fromTerritory = player.territories.find(t => t.name === from);
+        let fromTerritory: Territory | undefined = undefined;
+
+        for (const t of player.territories) {
+            // territory to attack to belong to player and so player can not attack its own territory
+            if(t.name === to) {
+                return {status: AttackFromToCases.YOUR_OWN_TERRITORY,}
+            }
+            // territory to attack from belongs to player
+            if(t.name === from) {
+                fromTerritory = t
+            }
+        }
+
         if(!fromTerritory) return {status: AttackFromToCases.NO_OWNERSHIP}
 
         const toTerritory = fromTerritory.borders.find(t => t === to);
@@ -214,16 +228,17 @@ export class Game {
     performAnAttack(from: CountryName, to: CountryName, player: Player = this.playerTurn) {
         const {status, fromTerritory, toTerritory} = this.canPlayerAttackFromTo(from, to, player)
 
+        console.log(status)
         if(status !== AttackFromToCases.YES) return status;
         if(!fromTerritory) throw 'fromTerritory must not come undefined'
 
         if(fromTerritory.soldiers > 3) {
             // TODO work in attack
-            attack(3);
+            attack(this, from, to,3);
         } else if(fromTerritory.soldiers === 3){
-            attack(2);
+            attack(this, from, to,2);
         } else if(fromTerritory.soldiers === 2){
-            attack(1);
+            attack(this, from, to,1);
         } else if(fromTerritory.soldiers === 1){
             throw `Can not attack from here. Here are ${fromTerritory.soldiers} soldiers.`
         } else throw  `${fromTerritory.soldiers} soldiers.`;
@@ -240,8 +255,10 @@ export enum gameState {
     soldersDistributed='Solders Distributed',
     newTurn='New Turn',
     finishedNewTurnSoldiers='Finished New Turn Soldiers',
+    attackFrom='Attack From',
     attackTo='Attack To',
     attackFinished='Attack Finished',
+    moveSoldiersFrom='Move Soldiers From',
     moveSoldiersTo='Move Soldiers To',
     finishTurn='Finish Turn',
 }

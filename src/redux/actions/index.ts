@@ -13,7 +13,7 @@ import {
   SetGameObjectAction,
   CreatePlayersAction,
   RemoveLastPlayerAction,
-  SetPlayerAction
+  SetPlayerAction, PlayerWantsToAttackAction
 } from "./gameActions";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
@@ -58,5 +58,8 @@ export const removeLastPlayer = (): RemoveLastPlayerAction => ({
 export const clickTerritory = (territory: CountryName | '', clickCoordinates: Point): ClickTerritoryAction => ({
   type: ReducerActionType.CLICK_TERRITORY,
   payload: {territory, clickCoordinates}
+});
+export const performAnAttack = (): PlayerWantsToAttackAction => ({
+  type: ReducerActionType.PLAYER_CHOOSE_ATTACKING_TO,
 });
 
