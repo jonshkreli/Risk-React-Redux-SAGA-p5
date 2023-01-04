@@ -63,7 +63,7 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
     }
 
     case ReducerActionType.CLICK_TERRITORY:
-      switch (state.game?.currentState) {
+      switch (state.game?.getState) {
         case gameState.attackFrom:
         case gameState.moveSoldiersFrom:
           return { ...state, modalCoordinates: action.payload.clickCoordinates, clickedTerritoryTo: action.payload.territory}
@@ -80,8 +80,7 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
             message = result
             return { ...state, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message}
           } else {
-            game.currentState = gameState.finishedNewTurnSoldiers
-            return { ...state, game, message: 'Attack wa performed successfully', modalCoordinates: {x: 0, y: 0}, clickedTerritoryFrom: '', clickedTerritoryTo: '', }
+            return { ...state, game, message: 'Attack was performed successfully', modalCoordinates: {x: 0, y: 0}, clickedTerritoryFrom: '', clickedTerritoryTo: '', }
           }
 
         }

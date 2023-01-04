@@ -37,7 +37,7 @@ export function initTouchingRect(p5: p5Types, game: Game, continentsCoordinates:
                                     // console.log(mouseY);
 
                                     if(mouseIsPressed) {
-                                        console.log(mouseIsPressed, mouseX, mouseY, stateKey, game.currentState)
+                                        console.log(stateKey)
 
                                         return {clickedTerritory: stateKey, x: mouseX, y: mouseY}
 
@@ -48,7 +48,7 @@ export function initTouchingRect(p5: p5Types, game: Game, continentsCoordinates:
 
                                             for (let t of game.playerTurn.territories) {
                                                 if(t.name === stateKey) { //find correct state
-                                                    t.soldiers += game.soldierToPut;
+                                                    t.soldiers += game.soldiersToPut;
                                                     game.currentState = gameState.finishedNewTurnSoldiers;
 
                                                 }

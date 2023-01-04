@@ -9,7 +9,7 @@ export const GameStatusView = () => {
 
     if(!game) return <span>Game has not started yet</span>
 
-    const {playerTurn, currentState, soldierToPut} = game
+    const {playerTurn, soldiersToPut, getInitialSoldersToPut} = game
 
     const playerName = playerTurn.name
 
@@ -20,6 +20,8 @@ export const GameStatusView = () => {
     const DoesNotBelongToPlayerMessage = clickedTerritoryFrom ? territoryDoesNotBelongToPlayerMessage(clickedTerritoryFrom, game.playerTurn.name) : 'invalid territory clicked'
     const canNotAttackOwnMessage = clickedTerritoryTo ? canNotAttackOwnTerritoryMessage(clickedTerritoryTo, game.playerTurn.name) : 'invalid territory clicked'
 
+
+    let currentState = game.getState;
 
     switch (currentState) {
         case gameState.newGame:
@@ -43,7 +45,7 @@ export const GameStatusView = () => {
         case gameState.moveSoldiersFrom:
             message = territoryBelongToPlayer ? 'How many solders do you want to move here?' : `${playerName}: is moving solders from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
             break;
-        case gameState.finishTurn:
+        case gameState.turnFinished:
             message = `${playerName} finished turn`
             break;
         case gameState.attackFinished:
@@ -53,7 +55,8 @@ export const GameStatusView = () => {
 
     return <div>
         <div>{currentState}</div>
-        <h3>Player {playerTurn.name} has {soldierToPut} available to put</h3>
+        <h3>Player {playerTurn.name} has a total of {getInitialSoldersToPut} solders to put</h3>
+        <h3>Player {playerTurn.name} has {soldiersToPut} solders remaining to put</h3>
         <h3>{message}</h3>
         <div>{clickedTerritoryFrom} <span>-&gt;</span> {clickedTerritoryTo}</div>
         <div>{reducerMsg}</div>

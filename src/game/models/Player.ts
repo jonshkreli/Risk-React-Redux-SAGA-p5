@@ -33,7 +33,7 @@ export class Player {
        let bestTerr = this.territories.find( e => e === withMostAlliesAndOneEnemy.territory);
        if(!bestTerr) throw 'Player could not find a territory where to put solders'
 
-       bestTerr.soldiers += this.game.soldierToPut;
+       bestTerr.soldiers += this.game.soldiersToPut;
 
        // think where to attack
        let enemyTerritories: Territory[] = this.getAllEnemyTerritories();

@@ -6,32 +6,28 @@ import {generateEmptyContinentsWithNumber, shuffleArray} from "../functions/smal
 import {CountryName} from "../constants/CountryName";
 import {attack} from "../functions/attack";
 import {Territory} from "../constants/Territory";
+import {canPlayerAttackFromThisTerritory, isInBorder} from "../functions/utils";
 
 export class Game {
 
     players: Player[] = [];
     playerTurn: Player;
-    soldierToPut: number = 0;
+    soldiersToPut: number = 0;
+    private initialSoldersToPut: number = 0;
     colors: (keyof typeof PlayerColors)[];
     winner: Player | undefined = undefined;
     cards: Card[];
 
-    currentState: gameState;
+    private currentState: gameState;
 
-    // newGame cardsDistributed soldersDistributed
-    // newTurn finishedNewTurnSoldiers attackTo attackFinished moveSoldiersTo finishTurn
-
-    //cards[]
     private settings: SettingsInterface;
     private rules: Rules
-    UpdateTable: () => void
 
-    constructor(players: Player[], settings: SettingsInterface, rules: Rules, UpdateTable: () => void) {
+    constructor(players: Player[], settings: SettingsInterface, rules: Rules) {
         this.players = players;
         this.settings = settings;
         this.rules = rules;
         this.colors = Object.keys(PlayerColors).filter((v) => isNaN(Number(v))) as (keyof typeof PlayerColors)[]
-        this.UpdateTable = UpdateTable;
 
         if(players.length > 6) {
             throw 'max number of players is 6';
@@ -75,7 +71,6 @@ export class Game {
         this.currentState = gameState.newTurn;
         this.playerTurn.isPlaying = false;
         this.calculateSoldiersToPut();
-        this.UpdateTable();
     }
 
     hasCurrentPlayerWon() {
@@ -181,7 +176,20 @@ export class Game {
             }
         }
 
-        this.soldierToPut = 3 + totalSoldiersFromContinents + soldiersFromTerritories;
+        this.soldiersToPut = 3 + totalSoldiersFromContinents + soldiersFromTerritories;
+        this.initialSoldersToPut = this.soldiersToPut
+    }
+
+    putAvailableSoldiers(territory: CountryName, soldersNumber: number) {
+        if(soldersNumber > this.soldiersToPut) throw `Can not put more than ${soldersNumber} solders.`
+        this.playerTurn.putSoldersInTerritory(territory, soldersNumber)
+        this.soldiersToPut -= soldersNumber
+
+        if (this.soldiersToPut === 0) this.readyForActionPhase()
+    }
+
+    get getInitialSoldersToPut() {
+        return this.initialSoldersToPut
     }
 
     /*
@@ -191,7 +199,6 @@ export class Game {
         if(this.players[playerIndex].territories.length === 0) {
             let removedPlayer = this.players[playerIndex];
            this.players.splice(playerIndex, 1);
-            this.UpdateTable();
 
            return removedPlayer;
         } else return false;
@@ -219,14 +226,22 @@ export class Game {
 
         if(!fromTerritory) return {status: AttackFromToCases.NO_OWNERSHIP}
 
-        const toTerritory = fromTerritory.borders.find(t => t === to);
+        const toTerritory = isInBorder(fromTerritory, to);
         if(!toTerritory) return {status: AttackFromToCases.NO_BORDER}
 
-        return {status: AttackFromToCases.YES, fromTerritory, toTerritory}
+        return {status: AttackFromToCases.YES, fromTerritory}
+    }
+
+    canStillPlayerAttackThisTurn(player: Player = this.playerTurn) {
+        for (const territory of player.territories) {
+            if(territory.soldiers <= 1) return false
+            if(!canPlayerAttackFromThisTerritory(player, territory.name)) return false
+        }
+        return true
     }
 
     performAnAttack(from: CountryName, to: CountryName, player: Player = this.playerTurn) {
-        const {status, fromTerritory, toTerritory} = this.canPlayerAttackFromTo(from, to, player)
+        const {status, fromTerritory} = this.canPlayerAttackFromTo(from, to, player)
 
         console.log(status)
         if(status !== AttackFromToCases.YES) return status;
@@ -245,6 +260,99 @@ export class Game {
 
     }
 
+    get getState() {
+        return this.currentState
+    }
+
+    private changeGameStatus(state?: gameState) {
+        switch (this.currentState) {
+            case gameState.newGame:
+                this.currentState = gameState.cardsDistributed
+                break;
+            case gameState.cardsDistributed:
+                this.currentState = gameState.soldersDistributed
+                break;
+            case gameState.soldersDistributed:
+                this.currentState = gameState.newTurn
+                break;
+
+            case gameState.newTurn:
+                // even when user put multiple times solders in territories we keep staying in newTurn as it doesn't change anything
+                this.currentState = gameState.finishedNewTurnSoldiers
+                break;
+            case gameState.finishedNewTurnSoldiers:
+                switch (state) {
+                    case gameState.attackFrom:
+                        this.currentState = gameState.attackFrom
+                        break;
+                    case gameState.moveSoldiersFrom:
+                        this.currentState = gameState.moveSoldiersFrom
+                        break;
+                    default:
+                        this.currentState = gameState.turnFinished
+                        break;
+                }
+                break;
+            case gameState.attackFrom:
+                switch (state) {
+                    case gameState.attackFinished: //if player does not have resources to attack anymore or if attack is canceled
+                        this.currentState = gameState.attackFinished
+                        break;
+                    case gameState.finishedNewTurnSoldiers: // if attack will continue or if attack is canceled
+                        this.currentState = gameState.finishedNewTurnSoldiers
+                        break;
+                    default: throw "State must not be undefined. State must be attackFinished or finishedNewTurnSoldiers"
+                }
+                break;
+            case gameState.attackTo: //unused
+                break;
+            case gameState.attackFinished:
+                switch (state) {
+                    case gameState.moveSoldiersFrom:
+                        this.currentState = gameState.attackFrom
+                        break;
+                    default:
+                        this.currentState = gameState.turnFinished
+                        break;
+                }
+                break;
+            case gameState.moveSoldiersFrom:
+                switch (state) {
+                    case gameState.attackFinished: // if move is canceled TODO make a way to totally cancel moveSoldiersFrom and return to finishedNewTurnSoldiers only if player has not attacked
+                        this.currentState = gameState.attackFinished
+                        break;
+                    default:
+                        this.currentState = gameState.turnFinished
+                        break;
+                }
+                break;
+            case gameState.moveSoldiersTo: // not used
+                break;
+            case gameState.turnFinished:
+                this.currentState = gameState.newTurn
+                break;
+        }
+    }
+
+    nextGamePhase() {
+        this.changeGameStatus()
+    }
+
+    attackFromPhase() {
+        this.changeGameStatus(gameState.attackFrom)
+    }
+    moveFromPhase() {
+        this.changeGameStatus(gameState.moveSoldiersFrom)
+    }
+
+    attackFinishedPhase() {
+        this.changeGameStatus(gameState.attackFinished)
+    }
+
+    readyForActionPhase() {
+        this.changeGameStatus(gameState.finishedNewTurnSoldiers)
+    }
+
 
 
 }
@@ -260,7 +368,7 @@ export enum gameState {
     attackFinished='Attack Finished',
     moveSoldiersFrom='Move Soldiers From',
     moveSoldiersTo='Move Soldiers To',
-    finishTurn='Finish Turn',
+    turnFinished='Turn Finished',
 }
 
 export enum AttackFromToCases {

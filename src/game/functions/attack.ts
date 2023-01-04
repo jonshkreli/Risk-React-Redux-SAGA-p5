@@ -1,6 +1,5 @@
-import {Game} from "../models/Game";
+import {Game, gameState} from "../models/Game";
 import {CountryName} from "../constants/CountryName";
-import p5Types from "p5";
 
 export function attack(game: Game, from: CountryName, to: CountryName, numberOfDices: number = 3, ) {
     const attackingPlayer = game.playerTurn
@@ -36,6 +35,7 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
     if(attackingSoldersLeft === 0) { //attacking finished in this part no more soldiers to attack
         console.log("attacking finished from this state no more soldiers to attack");
         fromTerritory.soldiers = 1;
+        if(!game.canStillPlayerAttackThisTurn()) game.attackFinishedPhase()
     } else if(result[1] === 0) { //occupy territory
         console.log(attackingSoldersLeft + " moving to " + to);
 
@@ -47,7 +47,11 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
         attackingPlayer.hasOccupiedTerritory = true;
 
         //change number of soldiers to attacking territory to 1
+        // TODO user must decide how many solders he/she wants to move
         fromTerritory.soldiers = 1;
+
+        if(!game.canStillPlayerAttackThisTurn()) game.attackFinishedPhase()
+        else game.readyForActionPhase()
 
         let playerWins = game.hasCurrentPlayerWon();
 
@@ -229,7 +233,7 @@ function oneDice(attackingNumber: 1, defendingNumber: number): [number, number] 
 }
 
 function getRandomDice() {
-    return Math.floor( Math.random() * 6 ) +1;
+    return Math.floor( Math.random() * 6 ) + 1;
 }
 
 function getTerritoryAndPLayerFromName(territoryToFind: CountryName, game: Game) {

@@ -6,6 +6,9 @@ import {clickTerritory, setGameObject} from "../../../redux/actions";
 import {Game, gameState} from "../../../game/models/Game";
 import {CountryName} from "../../../game/constants/CountryName";
 import {canNotAttackOwnTerritoryMessage, territoryDoesNotBelongToPlayerMessage} from "../helperMessages";
+import {Territory} from "../../../game/constants/Territory";
+import {Player} from "../../../game/models/Player";
+import {canPlayerAttackFromThisTerritory} from "../../../game/functions/utils";
 
 export const TerritoryModal = () => {
     const {
@@ -25,7 +28,7 @@ export const TerritoryModal = () => {
 
     const closeModal = React.useCallback(() => {
         let terrToClick: CountryName | '' = ''
-        switch (currentState) {
+        switch (game?.getState) {
             case gameState.attackFrom:
             case gameState.moveSoldiersFrom:
                 terrToClick = clickedTerritoryFrom
@@ -34,7 +37,7 @@ export const TerritoryModal = () => {
 
         console.log(`close modal ${terrToClick}`)
         return dispatch(clickTerritory(terrToClick, {x: 0, y: 0}));
-    }, [game?.currentState])
+    }, [game?.getState])
 
     const [solders, setSolders] = useState(maxSolders)
     useEffect(() => {
@@ -42,14 +45,15 @@ export const TerritoryModal = () => {
     }, [maxSolders])
     // console.log({maxSolders, solders})
 
-    if (!game) return ''
+    if (!game || !clickedTerritoryFrom) return ''
 
-    const {currentState, playerTurn} = game
+    const { getState, playerTurn} = game
+    const gamePhase = getState
 
-    let isPopoverOpen = clickedTerritoryFrom !== ''
+    let isPopoverOpen = true
 
     if (clickedTerritoryFrom)
-        switch (currentState) {
+        switch (gamePhase) {
             case gameState.newGame:
                 break;
             case gameState.cardsDistributed:
@@ -57,7 +61,7 @@ export const TerritoryModal = () => {
             case gameState.soldersDistributed:
                 break;
             case gameState.newTurn:
-                maxSolders = game.soldierToPut;
+                maxSolders = game.soldiersToPut;
                 break;
             case gameState.finishedNewTurnSoldiers:
                 break;
@@ -72,19 +76,19 @@ export const TerritoryModal = () => {
                 isPopoverOpen = false
                 break;
             case gameState.moveSoldiersTo:
+                console.log('We never go here!!!!!!!!!!!!!!!!')
                 const playerTerritory = game.playerTurn.getTerritory(clickedTerritoryFrom)
                 if (!playerTerritory) throw 'Territory must belong to player'
                 maxSolders = playerTerritory.soldiers - 1;
                 break;
-            case gameState.finishTurn:
+            case gameState.turnFinished:
                 break;
         }
 
 
-
     const onOk = () => {
         if (!clickedTerritoryFrom) throw `One territory must have been clicked`
-        switch (currentState) {
+        switch (gamePhase) {
             case gameState.newGame:
                 break;
             case gameState.cardsDistributed:
@@ -92,8 +96,7 @@ export const TerritoryModal = () => {
             case gameState.soldersDistributed:
                 break;
             case gameState.newTurn:
-                game.playerTurn.putSoldersInTerritory(clickedTerritoryFrom, solders)
-                if (solders === maxSolders) game.currentState = gameState.finishedNewTurnSoldiers
+                game.putAvailableSoldiers(clickedTerritoryFrom, solders)
                 dispatch(setGameObject(game))
                 closeModal()
                 break;
@@ -113,27 +116,28 @@ export const TerritoryModal = () => {
                 if (!clickedTerritoryTo) throw `One territory must have been clicked`
                 console.log('move from ' + clickedTerritoryFrom + ' to ' + clickedTerritoryTo)
                 break;
-            case gameState.finishTurn:
+            case gameState.turnFinished:
                 break;
         }
     }
 
     const setPlayerAction = (buttonClicked: 'attack' | 'move') => {
-        if (buttonClicked === "attack") game.currentState = gameState.attackFrom
-        if (buttonClicked === "move") game.currentState = gameState.moveSoldiersFrom
+        if (buttonClicked === "attack") game.attackFromPhase()
+        if (buttonClicked === "move") game.moveFromPhase()
         dispatch(setGameObject(game))
         closeModal()
     }
 
     const territoryBelongToPlayer = !!clickedTerritoryFrom && game.doesTerritoryBelongToPlayer(clickedTerritoryFrom, playerTurn)
+    const playerTerritory = game.playerTurn.getTerritory(clickedTerritoryFrom)
 
     return <Popover open={isPopoverOpen} anchorPosition={{left, top}} anchorReference='anchorPosition'>
         {clickedTerritoryFrom ? <DialogContent>
             <h4>Territory {clickedTerritoryFrom} clicked</h4>
             <span style={{color: game.playerTurn.color}}>{game.playerTurn.name}</span>
-            {currentState === gameState.finishedNewTurnSoldiers ?
-                <ButtonsDialogContent territoryBelongToPlayer={territoryBelongToPlayer} gameStatus={currentState}
-                                      buttonAction={setPlayerAction}/> :
+            {gamePhase === gameState.finishedNewTurnSoldiers ?
+                <ButtonsDialogContent territoryBelongToPlayer={territoryBelongToPlayer} gameStatus={gamePhase}
+                                      buttonAction={setPlayerAction} playerTerritory={playerTerritory} player={playerTurn}/> :
                 <PutSoldersDialogContent {...{
                     territoryBelongToPlayer,
                     clickedTerritoryFrom,
@@ -145,15 +149,10 @@ export const TerritoryModal = () => {
                 }} />
             }
         </DialogContent> : "No territory is clicked"}
-
-        {currentState === gameState.newTurn ?
             <DialogActions>
-                <Button onClick={onOk}>OK</Button>
-                <Button onClick={() => {
-                    closeModal()
-                }}>Cancel</Button>
+                {gamePhase === gameState.newTurn ? <Button onClick={onOk}>OK</Button> : ''}
+                    <Button onClick={() => {closeModal()}}>Cancel</Button>
             </DialogActions>
-            : ''}
     </Popover>
 }
 
@@ -182,9 +181,8 @@ export const PutSoldersDialogContent: React.FC<PutSoldersDialogContentProps> = (
 
     const DoesNotBelongToPlayerMessage = territoryDoesNotBelongToPlayerMessage(clickedTerritoryFrom, game.playerTurn.name)
     const canNotAttackOwnMessage = clickedTerritoryTo ? canNotAttackOwnTerritoryMessage(clickedTerritoryTo, game.playerTurn.name) : ''
-    const {currentState} = game
 
-    switch (currentState) {
+    switch (game.getState) {
         case gameState.newTurn:
             header = territoryBelongToPlayer ? 'How many solders do you want to put here?' : DoesNotBelongToPlayerMessage
             break;
@@ -218,24 +216,28 @@ interface ButtonsDialogContentProps {
     buttonAction: (buttonClicked: 'attack' | 'move') => void
     territoryBelongToPlayer: boolean
     gameStatus: gameState
+    playerTerritory: Territory | undefined
+    player: Player,
 }
 
 export const ButtonsDialogContent: React.FC<ButtonsDialogContentProps> = ({
                                                                               buttonAction,
                                                                               territoryBelongToPlayer,
-                                                                              gameStatus
+                                                                              gameStatus,
+                                                                              playerTerritory,
+    player,
                                                                           }) => {
+    const attackFromEnabled = gameStatus === gameState.finishedNewTurnSoldiers && playerTerritory && playerTerritory.soldiers > 1 && canPlayerAttackFromThisTerritory(player, playerTerritory.name)
+    const moveFromEnabled = (gameStatus === gameState.finishedNewTurnSoldiers || gameStatus === gameState.attackFinished) && playerTerritory && playerTerritory.soldiers > 1
+
 
     return <div>
         <h3>Time to move</h3>
+        solders {playerTerritory?.soldiers}
         {territoryBelongToPlayer ?
             <div>
-                <Button onClick={() => {
-                    buttonAction('attack')
-                }}>Attack From</Button>
-                <Button onClick={() => {
-                    buttonAction('move')
-                }}>Move Solders To</Button>
+                <Button disabled={!attackFromEnabled} onClick={() => {buttonAction('attack')}}>Attack From</Button>
+                <Button disabled={!moveFromEnabled} onClick={() => {buttonAction('move')}}>Move Solders From</Button>
             </div>
             :
             <span>Territory does not belong to this player</span>

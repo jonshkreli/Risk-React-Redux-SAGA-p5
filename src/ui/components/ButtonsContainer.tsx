@@ -11,7 +11,7 @@ export const ButtonsContainer = () => {
 
     const onStartGameClick = () => {
         if(players) {
-            const game = new Game(players, settings, rules, () => {})
+            const game = new Game(players, settings, rules)
             game.assignCardsToPlayers()
             game.putSoldiersInFieldFromPlayersHand()
 

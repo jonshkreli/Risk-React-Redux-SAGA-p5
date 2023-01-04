@@ -67,7 +67,7 @@ export const PlayersTable = (props: PlayersTableProps) => {
                         <TableCell style={tableCellStyle}>{game? p.name : <Input onChange={e => setPlayerType('name', e.target.value, p)} value={p.name}/>}</TableCell>
                         <TableCell style={tableCellStyle}>{p.territories.length}</TableCell>
                         <TableCell style={tableCellStyle}>{p.cards.length}</TableCell>
-                        <TableCell style={tableCellStyle}>{playerHasTurn && game ? game?.soldierToPut : 0}</TableCell>
+                        <TableCell style={tableCellStyle}>{playerHasTurn && game ? game?.soldiersToPut : 0}</TableCell>
                         <TableCell style={tableCellStyle}>{p.name}</TableCell>
                         <TableCell style={tableCellStyle}>{p.name}</TableCell>
                     </TableRow>
