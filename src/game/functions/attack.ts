@@ -35,7 +35,6 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
     if(attackingSoldersLeft === 0) { //attacking finished in this part no more soldiers to attack
         console.log("attacking finished from this state no more soldiers to attack");
         fromTerritory.soldiers = 1;
-        if(!game.canStillPlayerAttackThisTurn()) game.attackFinishedPhase()
     } else if(result[1] === 0) { //occupy territory
         console.log(attackingSoldersLeft + " moving to " + to);
 
@@ -50,8 +49,6 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
         // TODO user must decide how many solders he/she wants to move
         fromTerritory.soldiers = 1;
 
-        if(!game.canStillPlayerAttackThisTurn()) game.attackFinishedPhase()
-        else game.readyForActionPhase()
 
         let playerWins = game.hasCurrentPlayerWon();
 
@@ -65,6 +62,12 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
            console.log('player '+ attackedPLayer.name + " is out of game.")
        }
     }
+
+    console.log("game.canStillPlayerAttackThisTurn()", game.canStillPlayerAttackThisTurn())
+
+    if(!game.canStillPlayerAttackThisTurn()) game.attackFinishedPhase()
+    else game.readyForActionPhase()
+
 }
 
 

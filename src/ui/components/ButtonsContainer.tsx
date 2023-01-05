@@ -14,6 +14,7 @@ export const ButtonsContainer = () => {
             const game = new Game(players, settings, rules)
             game.assignCardsToPlayers()
             game.putSoldiersInFieldFromPlayersHand()
+            game.nextGamePhase() // new turn
 
             dispatch(setGameObject(game))
             // console.log(game)

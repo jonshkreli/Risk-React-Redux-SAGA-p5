@@ -171,4 +171,3 @@ export type OneEnemyTerritory = {
     territory?: Territory, allies: number
 }
 
-

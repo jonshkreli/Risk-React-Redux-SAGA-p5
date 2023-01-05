@@ -43,7 +43,7 @@ export class Game {
         this.cards =  [...cards];
         this.shuffleCards()
 
-        this.currentState = gameState.newTurn;
+        this.currentState = gameState.newGame;
     }
 
     shufflePlayers() {
@@ -101,6 +101,7 @@ export class Game {
         let playerTurnToTakeCard = 0;
         let th: Game = this;
         assignCardToPlayerRecursive();
+        this.nextGamePhase()
 
         function  assignCardToPlayerRecursive () {
             if(th.cards.length === 0) throw "Game don't have any card to distribute."
@@ -119,7 +120,6 @@ export class Game {
               assignCardToPlayerRecursive();
           }
         }
-        // this.UpdateTable();
     }
 
     putSoldiersInFieldFromPlayersHand() {
@@ -139,7 +139,7 @@ export class Game {
         this.cards = [...cards]
         this.shuffleCards()
 
-        // this.UpdateTable();
+        this.nextGamePhase()
     }
 
     calculateSoldiersToPut() {
@@ -234,10 +234,9 @@ export class Game {
 
     canStillPlayerAttackThisTurn(player: Player = this.playerTurn) {
         for (const territory of player.territories) {
-            if(territory.soldiers <= 1) return false
-            if(!canPlayerAttackFromThisTerritory(player, territory.name)) return false
+            if(canPlayerAttackFromThisTerritory(player, territory.name)) return true
         }
-        return true
+        return false
     }
 
     performAnAttack(from: CountryName, to: CountryName, player: Player = this.playerTurn) {
@@ -285,8 +284,8 @@ export class Game {
                     case gameState.attackFrom:
                         this.currentState = gameState.attackFrom
                         break;
-                    case gameState.moveSoldiersFrom:
-                        this.currentState = gameState.moveSoldiersFrom
+                    case gameState.moveSoldiersFromNoAttack:
+                        this.currentState = gameState.moveSoldiersFromNoAttack
                         break;
                     default:
                         this.currentState = gameState.turnFinished
@@ -304,11 +303,9 @@ export class Game {
                     default: throw "State must not be undefined. State must be attackFinished or finishedNewTurnSoldiers"
                 }
                 break;
-            case gameState.attackTo: //unused
-                break;
             case gameState.attackFinished:
                 switch (state) {
-                    case gameState.moveSoldiersFrom:
+                    case gameState.moveSoldiersFromNoAttack:
                         this.currentState = gameState.attackFrom
                         break;
                     default:
@@ -316,9 +313,9 @@ export class Game {
                         break;
                 }
                 break;
-            case gameState.moveSoldiersFrom:
+            case gameState.moveSoldiersFromAfterAttack:
                 switch (state) {
-                    case gameState.attackFinished: // if move is canceled TODO make a way to totally cancel moveSoldiersFrom and return to finishedNewTurnSoldiers only if player has not attacked
+                    case gameState.attackFinished: // if we want to cancel moving of players and want to continue attacking
                         this.currentState = gameState.attackFinished
                         break;
                     default:
@@ -326,7 +323,15 @@ export class Game {
                         break;
                 }
                 break;
-            case gameState.moveSoldiersTo: // not used
+            case gameState.moveSoldiersFromNoAttack:
+                switch (state) {
+                    case gameState.finishedNewTurnSoldiers: // if move is canceled in the beginning of turn
+                        this.currentState = gameState.finishedNewTurnSoldiers
+                        break;
+                    default:
+                        this.currentState = gameState.turnFinished
+                        break;
+                }
                 break;
             case gameState.turnFinished:
                 this.currentState = gameState.newTurn
@@ -342,7 +347,10 @@ export class Game {
         this.changeGameStatus(gameState.attackFrom)
     }
     moveFromPhase() {
-        this.changeGameStatus(gameState.moveSoldiersFrom)
+        this.changeGameStatus(gameState.moveSoldiersFromAfterAttack)
+    }
+    moveFromNoAttackPhase() {
+        this.changeGameStatus(gameState.moveSoldiersFromNoAttack)
     }
 
     attackFinishedPhase() {
@@ -364,10 +372,9 @@ export enum gameState {
     newTurn='New Turn',
     finishedNewTurnSoldiers='Finished New Turn Soldiers',
     attackFrom='Attack From',
-    attackTo='Attack To',
     attackFinished='Attack Finished',
-    moveSoldiersFrom='Move Soldiers From',
-    moveSoldiersTo='Move Soldiers To',
+    moveSoldiersFromNoAttack = 'Move Soldiers From No Attack',
+    moveSoldiersFromAfterAttack = 'Move Soldiers From After Attack',
     turnFinished='Turn Finished',
 }
 

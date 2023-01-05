@@ -42,7 +42,7 @@ export const GameStatusView = () => {
         case gameState.attackFrom:
             message = territoryBelongToPlayer ? canNotAttackOwnMessage : `${playerName}: is attacking from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
             break;
-        case gameState.moveSoldiersFrom:
+        case gameState.moveSoldiersFromNoAttack:
             message = territoryBelongToPlayer ? 'How many solders do you want to move here?' : `${playerName}: is moving solders from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
             break;
         case gameState.turnFinished:

@@ -36,10 +36,10 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
   const {game, clickedTerritoryFrom, clickedTerritoryTo} = state
 
   switch (action.type) {
-    case ReducerActionType.SET_RULES:
-      break;
-    case ReducerActionType.SET_SETTINGS:
-      break;
+    // case ReducerActionType.SET_RULES:
+    //   break;
+    // case ReducerActionType.SET_SETTINGS:
+    //   break;
     case ReducerActionType.CREATE_GAME_OBJECT:
       return { ...state, game: action.payload.game, loading: false }
 
@@ -65,7 +65,7 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
     case ReducerActionType.CLICK_TERRITORY:
       switch (state.game?.getState) {
         case gameState.attackFrom:
-        case gameState.moveSoldiersFrom:
+        case gameState.moveSoldiersFromNoAttack:
           return { ...state, modalCoordinates: action.payload.clickCoordinates, clickedTerritoryTo: action.payload.territory}
         default:
           return { ...state, modalCoordinates: action.payload.clickCoordinates, clickedTerritoryFrom: action.payload.territory}
@@ -82,7 +82,6 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
           } else {
             return { ...state, game, message: 'Attack was performed successfully', modalCoordinates: {x: 0, y: 0}, clickedTerritoryFrom: '', clickedTerritoryTo: '', }
           }
-
         }
         return state
     default:

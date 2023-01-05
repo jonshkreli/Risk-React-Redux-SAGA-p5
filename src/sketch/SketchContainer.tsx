@@ -60,10 +60,10 @@ export const SketchContainer: React.FC<ComponentProps> = (props: ComponentProps)
             const clickResult = initTouchingRect(p5,game, continentsCoordinates)
             if(clickResult) {
                 const {clickedTerritory, x, y} = clickResult
-                console.log('set clicket terr ' + clickedTerritory, {x, y})
+                // console.log('set clicket terr ' + clickedTerritory, {x, y})
                 if(modalCoordinates.x === 0 && modalCoordinates.y === 0) {
                     dispatch(clickTerritory(clickedTerritory, {x, y}))
-                } else console.log("modal is open")
+                } /*else console.log("modal is open")*/
             }
 
         }

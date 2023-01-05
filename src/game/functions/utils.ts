@@ -10,7 +10,7 @@ export const canPlayerAttackFromThisTerritory = (player: Player, territoryName: 
     const territory = player.getTerritory(territoryName);
     if(!territory) throw `${territoryName} must belong to player ${player.name}`
 
-  for (const borderTerr of territory.borders) if (!player.getTerritory(borderTerr)) return true
+  for (const borderTerr of territory.borders) if (!player.getTerritory(borderTerr) && territory.soldiers > 1) return true
 
   return false
 }
