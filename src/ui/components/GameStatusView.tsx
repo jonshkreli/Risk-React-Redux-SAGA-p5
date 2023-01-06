@@ -1,13 +1,21 @@
 import React from 'react';
-import {useSelector} from "react-redux";
+import {useDispatch, useSelector} from "react-redux";
 import {DefaultReducerStateType} from "../../redux/reducers";
 import {gameState} from "../../game/models/Game";
 import {canNotAttackOwnTerritoryMessage, territoryDoesNotBelongToPlayerMessage} from "./helperMessages";
+import {Button} from "@mui/material";
+import {setGameObject} from "../../redux/actions";
 
 export const GameStatusView = () => {
-    const {game, clickedTerritoryFrom, clickedTerritoryTo, message: reducerMsg} = useSelector((state: DefaultReducerStateType) => state);
+    const {
+        game,
+        clickedTerritoryFrom,
+        clickedTerritoryTo,
+        message: reducerMsg
+    } = useSelector((state: DefaultReducerStateType) => state);
+    const dispatch = useDispatch()
 
-    if(!game) return <span>Game has not started yet</span>
+    if (!game) return <span>Game has not started yet</span>
 
     const {playerTurn, soldiersToPut, getInitialSoldersToPut} = game
 
@@ -16,12 +24,11 @@ export const GameStatusView = () => {
     let message = ''
 
     const territoryBelongToPlayer = !!clickedTerritoryFrom && game.doesTerritoryBelongToPlayer(clickedTerritoryFrom, playerTurn)
-
-    const DoesNotBelongToPlayerMessage = clickedTerritoryFrom ? territoryDoesNotBelongToPlayerMessage(clickedTerritoryFrom, game.playerTurn.name) : 'invalid territory clicked'
+    clickedTerritoryFrom ? territoryDoesNotBelongToPlayerMessage(clickedTerritoryFrom, game.playerTurn.name) : 'invalid territory clicked';
     const canNotAttackOwnMessage = clickedTerritoryTo ? canNotAttackOwnTerritoryMessage(clickedTerritoryTo, game.playerTurn.name) : 'invalid territory clicked'
 
 
-    let currentState = game.getState;
+    const currentState = game.getState;
 
     switch (currentState) {
         case gameState.newGame:
@@ -39,9 +46,11 @@ export const GameStatusView = () => {
         case gameState.finishedNewTurnSoldiers:
             message = `What does ${playerName} want to do?`
             break;
+        case gameState.firstAttackFrom:
         case gameState.attackFrom:
             message = territoryBelongToPlayer ? canNotAttackOwnMessage : `${playerName}: is attacking from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
             break;
+        case gameState.moveSoldiersFromAfterAttack:
         case gameState.moveSoldiersFromNoAttack:
             message = territoryBelongToPlayer ? 'How many solders do you want to move here?' : `${playerName}: is moving solders from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
             break;

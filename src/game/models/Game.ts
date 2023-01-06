@@ -316,23 +316,26 @@ export class Game {
                     case "move":
                         this.currentState = gameState.moveSoldiersFromNoAttack
                         break;
-                    default:
+                    case "next":
                         this.currentState = gameState.turnFinished
                         break;
+                    default: throw `${this.currentState}: Action must be attack or move or next`
+
                 }
                 break;
             case gameState.firstAttackFrom:
                 switch (action) {
-                    case "next": //if player can attack again or move
-                        this.currentState = gameState.firstAttackFinished
+                    case "previous": // if attack is canceled
+                        this.currentState = gameState.finishedNewTurnSoldiers
                         break;
                     case "attackFinished": //if player does not have resources to attack anymore
                         this.currentState = gameState.attackFinished
                         break;
-                    case "previous": // if attack is canceled
-                        this.currentState = gameState.finishedNewTurnSoldiers
+                    case "next": //if player can attack again or move
+                        this.currentState = gameState.firstAttackFinished
                         break;
-                    default: throw "gameState.firstAttackFrom: State must be next or cancel"
+                    default: throw `${this.currentState}: Action must be previous or attackFinished or next`
+
                 }
                 break;
             case gameState.firstAttackFinished:
@@ -343,20 +346,21 @@ export class Game {
                     case "move": // move solders
                         this.currentState = gameState.moveSoldiersFromAfterAttack
                         break;
-                    default:
+                    case "next":
                         this.currentState = gameState.turnFinished
                         break;
+                    default: throw `${this.currentState}: Action must be attack or move or next`
                 }
                 break;
             case gameState.attackFrom:
                 switch (action) {
-                    case "next": //if player does not have resources to attack anymore or if attack is canceled
-                        this.currentState = gameState.attackFinished
-                        break;
                     case "previous": // if attack will continue or if attack is canceled
                         this.currentState = gameState.firstAttackFinished
                         break;
-                    default: throw "gameState.attackFrom: State must be next or cancel"
+                    case "next":
+                        this.currentState = gameState.attackFinished
+                        break;
+                    default: throw `${this.currentState}: Action must be previous or next`
                 }
                 break;
             case gameState.attackFinished:
@@ -364,22 +368,24 @@ export class Game {
                     case "move":
                         this.currentState = gameState.moveSoldiersFromAfterAttack
                         break;
-                    default:
+                    case "next":
                         this.currentState = gameState.turnFinished
                         break;
+                    default: throw `${this.currentState}: Action must be move or next`
                 }
                 break;
             case gameState.moveSoldiersFromAfterAttack:
                 switch (action) {
                     case "previous": // if we want to cancel moving of players and want to continue attacking
-                        this.currentState = gameState.attackFinished
+                        this.currentState = gameState.firstAttackFinished
                         break;
                     case "moveFinished": // if move is canceled in the beginning of turn
                         this.currentState = gameState.attackFinished
                         break;
-                    default:
+                    case "next":
                         this.currentState = gameState.turnFinished
                         break;
+                    default: throw `${this.currentState}: Action must be previous or moveFinished or next`
                 }
                 break;
             case gameState.moveSoldiersFromNoAttack:
@@ -390,9 +396,10 @@ export class Game {
                     case "moveFinished": // if move is canceled in the beginning of turn
                         this.currentState = gameState.attackFinished
                         break;
-                    default:
+                    case "next":
                         this.currentState = gameState.turnFinished
                         break;
+                    default: throw `${this.currentState}: Action must be previous or moveFinished or next`
                 }
                 break;
             case gameState.turnFinished:
@@ -402,7 +409,7 @@ export class Game {
     }
 
      nextGamePhase() {
-        this.changeGameStatus()
+        this.changeGameStatus("next")
     }
 
     previousGamePhase() {

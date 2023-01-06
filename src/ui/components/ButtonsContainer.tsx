@@ -4,6 +4,8 @@ import {setGameObject} from "../../redux/actions";
 import {useDispatch, useSelector} from "react-redux";
 import {DefaultReducerStateType} from "../../redux/reducers";
 import {Game} from "../../game/models/Game";
+import {FinishTurnButton} from "./Buttons/FinishTurnButton";
+import {CancelButton} from "./Buttons/CancelButton";
 
 export const ButtonsContainer = () => {
     const dispatch = useDispatch()
@@ -25,5 +27,7 @@ export const ButtonsContainer = () => {
 
     return <div>
         <Button onClick={onStartGameClick}>Start game</Button>
+        <FinishTurnButton/>
+        <CancelButton/>
     </div>
 }
