@@ -64,7 +64,9 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
 
     case ReducerActionType.CLICK_TERRITORY:
       switch (state.game?.getState) {
+        case gameState.firstAttackFrom:
         case gameState.attackFrom:
+        case gameState.moveSoldiersFromAfterAttack:
         case gameState.moveSoldiersFromNoAttack:
           return { ...state, modalCoordinates: action.payload.clickCoordinates, clickedTerritoryTo: action.payload.territory}
         default:

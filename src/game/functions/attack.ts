@@ -63,10 +63,22 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
        }
     }
 
-    console.log("game.canStillPlayerAttackThisTurn()", game.canStillPlayerAttackThisTurn())
+    const canPlayerAttack = game.canStillPlayerAttackThisTurn()
 
-    if(!game.canStillPlayerAttackThisTurn()) game.attackFinishedPhase()
-    else game.readyForActionPhase()
+    console.log("game.canStillPlayerAttackThisTurn()", canPlayerAttack)
+
+    switch (game.getState) {
+        case gameState.firstAttackFrom:
+            if (canPlayerAttack) game.nextGamePhase()
+            else game.finishAttackImmediatelyPhase()
+            break
+        case gameState.attackFrom:
+            if (canPlayerAttack) game.previousGamePhase()
+            else game.nextGamePhase()
+            break
+        default:
+            throw "When an attack happens game phase must be firstAttackFrom or attackFrom"
+    }
 
 }
 

@@ -45,10 +45,12 @@ function* triggerAttackOrMove() {
 
     if (!game) return
     switch (game.getState) {
+        case gameState.moveSoldiersFromAfterAttack:
         case gameState.moveSoldiersFromNoAttack:
             yield put({type: ReducerActionType.PLAYER_CHOOSE_MOVING_TO});
             // TODO implement PLAYER_CHOOSE_MOVING_TO in reducer
             break;
+        case gameState.firstAttackFrom:
         case gameState.attackFrom:
             yield put({type: ReducerActionType.PLAYER_CHOOSE_ATTACKING_TO});
             break;

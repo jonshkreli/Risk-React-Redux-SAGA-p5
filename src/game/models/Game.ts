@@ -176,7 +176,7 @@ export class Game {
             }
         }
 
-        this.soldiersToPut = 3 + totalSoldiersFromContinents + soldiersFromTerritories;
+        this.soldiersToPut = 13 + totalSoldiersFromContinents + soldiersFromTerritories;
         this.initialSoldersToPut = this.soldiersToPut
     }
 
@@ -185,7 +185,7 @@ export class Game {
         this.playerTurn.putSoldersInTerritory(territory, soldersNumber)
         this.soldiersToPut -= soldersNumber
 
-        if (this.soldiersToPut === 0) this.readyForActionPhase()
+        if (this.soldiersToPut === 0) this.nextGamePhase()
     }
 
     get getInitialSoldersToPut() {
@@ -263,7 +263,7 @@ export class Game {
         return this.currentState
     }
 
-    private changeGameStatus(state?: gameState) {
+    private changeGameStatus(action: 'next'| 'attack' | 'attackFinished' | 'move'| 'previous' = "next") {
         switch (this.currentState) {
             case gameState.newGame:
                 this.currentState = gameState.cardsDistributed
@@ -280,11 +280,11 @@ export class Game {
                 this.currentState = gameState.finishedNewTurnSoldiers
                 break;
             case gameState.finishedNewTurnSoldiers:
-                switch (state) {
-                    case gameState.attackFrom:
-                        this.currentState = gameState.attackFrom
+                switch (action) {
+                    case "attack":
+                        this.currentState = gameState.firstAttackFrom
                         break;
-                    case gameState.moveSoldiersFromNoAttack:
+                    case "move":
                         this.currentState = gameState.moveSoldiersFromNoAttack
                         break;
                     default:
@@ -292,20 +292,47 @@ export class Game {
                         break;
                 }
                 break;
-            case gameState.attackFrom:
-                switch (state) {
-                    case gameState.attackFinished: //if player does not have resources to attack anymore or if attack is canceled
+            case gameState.firstAttackFrom:
+                switch (action) {
+                    case "next": //if player can attack again or move
+                        this.currentState = gameState.firstAttackFinished
+                        break;
+                    case "attackFinished": //if player does not have resources to attack anymore
                         this.currentState = gameState.attackFinished
                         break;
-                    case gameState.finishedNewTurnSoldiers: // if attack will continue or if attack is canceled
+                    case "previous": // if attack is canceled
                         this.currentState = gameState.finishedNewTurnSoldiers
                         break;
-                    default: throw "State must not be undefined. State must be attackFinished or finishedNewTurnSoldiers"
+                    default: throw "gameState.firstAttackFrom: State must be next or cancel"
+                }
+                break;
+            case gameState.firstAttackFinished:
+                switch (action) {
+                    case "attack": // attack again
+                        this.currentState = gameState.attackFrom
+                        break;
+                    case "move": // move solders
+                        this.currentState = gameState.moveSoldiersFromAfterAttack
+                        break;
+                    default:
+                        this.currentState = gameState.turnFinished
+                        break;
+                }
+                break;
+            case gameState.attackFrom:
+                switch (action) {
+                    case "next": //if player does not have resources to attack anymore or if attack is canceled
+                        this.currentState = gameState.attackFinished
+                        break;
+                    case "previous": // if attack will continue or if attack is canceled
+                        this.currentState = gameState.firstAttackFinished
+                        break;
+                    default: throw "gameState.attackFrom: State must be next or cancel"
                 }
                 break;
             case gameState.attackFinished:
-                switch (state) {
-                    case gameState.moveSoldiersFromNoAttack:
+                switch (action) {
+                    case "move":
                         this.currentState = gameState.attackFrom
                         break;
                     default:
@@ -314,8 +341,8 @@ export class Game {
                 }
                 break;
             case gameState.moveSoldiersFromAfterAttack:
-                switch (state) {
-                    case gameState.attackFinished: // if we want to cancel moving of players and want to continue attacking
+                switch (action) {
+                    case "previous": // if we want to cancel moving of players and want to continue attacking
                         this.currentState = gameState.attackFinished
                         break;
                     default:
@@ -324,8 +351,8 @@ export class Game {
                 }
                 break;
             case gameState.moveSoldiersFromNoAttack:
-                switch (state) {
-                    case gameState.finishedNewTurnSoldiers: // if move is canceled in the beginning of turn
+                switch (action) {
+                    case "previous": // if move is canceled in the beginning of turn
                         this.currentState = gameState.finishedNewTurnSoldiers
                         break;
                     default:
@@ -339,28 +366,23 @@ export class Game {
         }
     }
 
-    nextGamePhase() {
+     nextGamePhase() {
         this.changeGameStatus()
     }
 
+    previousGamePhase() {
+        this.changeGameStatus("previous")
+    }
+
     attackFromPhase() {
-        this.changeGameStatus(gameState.attackFrom)
+        this.changeGameStatus("attack")
+    }
+    finishAttackImmediatelyPhase() {
+        this.changeGameStatus("attackFinished")
     }
     moveFromPhase() {
-        this.changeGameStatus(gameState.moveSoldiersFromAfterAttack)
+        this.changeGameStatus("move")
     }
-    moveFromNoAttackPhase() {
-        this.changeGameStatus(gameState.moveSoldiersFromNoAttack)
-    }
-
-    attackFinishedPhase() {
-        this.changeGameStatus(gameState.attackFinished)
-    }
-
-    readyForActionPhase() {
-        this.changeGameStatus(gameState.finishedNewTurnSoldiers)
-    }
-
 
 
 }
@@ -371,10 +393,12 @@ export enum gameState {
     soldersDistributed='Solders Distributed',
     newTurn='New Turn',
     finishedNewTurnSoldiers='Finished New Turn Soldiers',
+    firstAttackFrom='First Attack From',
+    firstAttackFinished='First Attack Finished',
     attackFrom='Attack From',
     attackFinished='Attack Finished',
-    moveSoldiersFromNoAttack = 'Move Soldiers From No Attack',
     moveSoldiersFromAfterAttack = 'Move Soldiers From After Attack',
+    moveSoldiersFromNoAttack = 'Move Soldiers From No Attack',
     turnFinished='Turn Finished',
 }
 

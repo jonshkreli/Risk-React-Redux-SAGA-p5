@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {Button, DialogActions, DialogContent, Input, Popover} from "@mui/material";
+import {Button, DialogActions, DialogContent, fabClasses, Input, Popover} from "@mui/material";
 import {useDispatch, useSelector} from "react-redux";
 import {DefaultReducerStateType} from "../../../redux/reducers";
 import {clickTerritory, setGameObject} from "../../../redux/actions";
@@ -24,11 +24,12 @@ export const TerritoryModal = () => {
 
     console.log({clickedTerritoryFrom, clickedTerritoryTo})
 
-    let maxSolders = React.useMemo(() => game?.soldiersToPut, [game?.soldiersToPut])
+    const maxSolders = React.useMemo(() => game?.soldiersToPut || 0, [game?.soldiersToPut])
 
     const closeModal = React.useCallback(() => {
         let terrToClick: CountryName | '' = ''
         switch (game?.getState) {
+            case gameState.firstAttackFrom:
             case gameState.attackFrom:
             case gameState.moveSoldiersFromAfterAttack:
             case gameState.moveSoldiersFromNoAttack:
@@ -36,7 +37,7 @@ export const TerritoryModal = () => {
                 break;
         }
 
-        // console.log(`close modal ${terrToClick}`)
+        console.log(`close modal ${terrToClick}`)
         return dispatch(clickTerritory(terrToClick, {x: 0, y: 0}));
     }, [game?.getState])
 
@@ -62,17 +63,19 @@ export const TerritoryModal = () => {
             case gameState.soldersDistributed:
                 break;
             case gameState.newTurn:
-                maxSolders = game.soldiersToPut;
                 break;
             case gameState.finishedNewTurnSoldiers:
                 showActionButtons = true
                 break;
+            case gameState.firstAttackFrom:
             case gameState.attackFrom:
                 isPopoverOpen = false
                 break;
+            case gameState.firstAttackFinished:
             case gameState.attackFinished:
                 showActionButtons = true
                 break;
+            case gameState.moveSoldiersFromAfterAttack:
             case gameState.moveSoldiersFromNoAttack:
                 isPopoverOpen = false
                 break;
@@ -110,18 +113,7 @@ export const TerritoryModal = () => {
 
     const setPlayerAction = (buttonClicked: 'attack' | 'move') => {
         if (buttonClicked === "attack") game.attackFromPhase()
-        if (buttonClicked === "move") {
-            switch (gamePhase) {
-                case gameState.finishedNewTurnSoldiers:
-                    game.moveFromNoAttackPhase()
-                    break;
-                case gameState.attackFinished:
-                    game.moveFromPhase()
-                    break;
-                default: throw "When clicking move player should be in finishedNewTurnSoldiers or attackFinished phase"
-            }
-
-        }
+        if (buttonClicked === "move") game.moveFromPhase()
         dispatch(setGameObject(game))
         closeModal()
     }
@@ -173,8 +165,6 @@ export const PutSoldersDialogContent: React.FC<PutSoldersDialogContentProps> = (
                                                                                     clickedTerritoryTo,
                                                                                     territoryBelongToPlayer
                                                                                 }) => {
-    console.log({solders})
-
     let header = ''
 
     const DoesNotBelongToPlayerMessage = territoryDoesNotBelongToPlayerMessage(clickedTerritoryFrom, game.playerTurn.name)
@@ -220,9 +210,23 @@ export const ButtonsDialogContent: React.FC<ButtonsDialogContentProps> = ({
                                                                               playerTerritory,
     player,
                                                                           }) => {
-    const attackFromEnabled = gameStatus === gameState.finishedNewTurnSoldiers && playerTerritory && canPlayerAttackFromThisTerritory(player, playerTerritory.name)
-    const moveFromEnabled = (gameStatus === gameState.finishedNewTurnSoldiers || gameStatus === gameState.attackFinished) && playerTerritory && playerTerritory.soldiers > 1
 
+    if(!playerTerritory) return <div>No territory clicked</div>
+
+    let attackFromEnabled: boolean;
+
+    switch (gameStatus) {
+        case gameState.finishedNewTurnSoldiers:
+        case gameState.firstAttackFinished:
+            attackFromEnabled = true
+            break
+        default:
+            attackFromEnabled = false
+
+    }
+
+    attackFromEnabled = attackFromEnabled && canPlayerAttackFromThisTerritory(player, playerTerritory.name);
+    const moveFromEnabled = playerTerritory.soldiers > 1;
 
     return <div>
         <h3>Time to move</h3>
