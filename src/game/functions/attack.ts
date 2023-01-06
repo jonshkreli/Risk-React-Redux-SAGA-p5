@@ -1,5 +1,6 @@
 import {Game, gameState} from "../models/Game";
 import {CountryName} from "../constants/CountryName";
+import {Territory} from "../constants/Territory";
 
 export function attack(game: Game, from: CountryName, to: CountryName, numberOfDices: number = 3, ) {
     const attackingPlayer = game.playerTurn
@@ -260,36 +261,12 @@ function getTerritoryAndPLayerFromName(territoryToFind: CountryName, game: Game)
         }
     }
 }
-
-var count=0;
-function canMoveToTerritory() {
-
-    let TerritoryFrom = game.playerTurn.territories.find(e => e.name === moveSoldiersFromState);
-
-
-    //modifies isInPlayersTerritoryTree
-    searchInBorders(activeState, TerritoryFrom, game.playerTurn.territories,);
-
-
-    if(isInPlayersTerritoryTree) {
-        isInPlayersTerritoryTree = false; //reset
-        count = 0;
-        return true;
-    }
-    return false;
-}
-
-
-function searchInBorders(toTerritory, fromTerritoryObj, playerTerritories, previousFromTerritory) {
+export function searchInBorders(fromTerritoryObj: Territory, toTerritory: CountryName, playerTerritories: Territory[], previousFromTerritories: CountryName[]): boolean {
+    let res = false
     for (let bt of fromTerritoryObj.borders) {
-        count ++;
-        if(count > 1000) {
-            count = 0;
-            break;
-        }
 
         //do not check territory that we came from
-        if(bt === previousFromTerritory) continue;
+        if(previousFromTerritories.find(pt => pt === bt)) continue;
 
         //get territory object from territory name
         let playerTerritory = playerTerritories.find(e => e.name === bt);
@@ -297,18 +274,21 @@ function searchInBorders(toTerritory, fromTerritoryObj, playerTerritories, previ
         // if this border territory does not belong to this player skip this search
         if(playerTerritory === undefined) continue;
 
+        // console.log(bt, toTerritory)
         if(bt === toTerritory) {
-            isInPlayersTerritoryTree = true;
-            return;
+            return true;
         } else {
-            searchInBorders(toTerritory, playerTerritory, playerTerritories, fromTerritoryObj.name)
+            res = searchInBorders(playerTerritory, toTerritory, playerTerritories, [...previousFromTerritories, bt])
+            if(res) return true
         }
 
     }
+    // console.log('do wea rrive here')
+    return res
 }
 
 
-function soldiersByStars(stars) {
+function soldiersByStars(stars: number) {
     if(stars>10) return 30;
 
     switch (stars) {

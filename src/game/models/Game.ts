@@ -4,7 +4,7 @@ import {PlayerColors, rules, Rules, SettingsInterface} from "../constants/settin
 import {ContinentName} from "../constants/continents";
 import {generateEmptyContinentsWithNumber, shuffleArray} from "../functions/smallUtils";
 import {CountryName} from "../constants/CountryName";
-import {attack} from "../functions/attack";
+import {attack, searchInBorders} from "../functions/attack";
 import {Territory} from "../constants/Territory";
 import {canPlayerAttackFromThisTerritory, isInBorder} from "../functions/utils";
 
@@ -208,7 +208,7 @@ export class Game {
         return !!player.territories.find(e => e.name === terr);
     }
 
-    canPlayerAttackFromTo(from: CountryName, to: CountryName, player: Player = this.playerTurn) {
+    private canPlayerAttackFromTo(from: CountryName, to: CountryName, player: Player = this.playerTurn) {
         if (from === to) return {status: AttackFromToCases.YOUR_OWN_TERRITORY,}
 
         let fromTerritory: Territory | undefined = undefined;
@@ -259,11 +259,40 @@ export class Game {
 
     }
 
+    private canPlayerMoveFromTo(from: CountryName, to: CountryName, player: Player = this.playerTurn) {
+        if(from === to) return {status: MoveFromToCases.SAME_TERRITORY}
+
+        const fromTerritory = player.getTerritory(from), toTerritory = player.getTerritory(to);
+
+        if(!fromTerritory) return {status: MoveFromToCases.NO_OWNERSHIP}
+        if(!toTerritory) return {status: MoveFromToCases.NO_OWNERSHIP}
+
+        const areTerritoriesConnected = searchInBorders(fromTerritory, to, player.territories, [from])
+
+        if(!areTerritoriesConnected) return {status: MoveFromToCases.NO_BORDER_LINK}
+
+        return {status: MoveFromToCases.YES, fromTerritory, toTerritory}
+    }
+
+    performAMove(from: CountryName, to: CountryName, soldersAmount: number, player: Player = this.playerTurn) {
+        if(soldersAmount<=0) throw `Player wants to move ${soldersAmount} solders. It must be at least 1 solder.`
+        const {status, fromTerritory, toTerritory} = this.canPlayerMoveFromTo(from, to, player)
+
+        console.log(status)
+        if(status !== MoveFromToCases.YES) return status;
+        if(!fromTerritory || !toTerritory) throw 'fromTerritory and toTerritory must not come undefined'
+
+        fromTerritory.soldiers -= soldersAmount
+        toTerritory.soldiers += soldersAmount
+
+        this.finishMovePhase()
+    }
+
     get getState() {
         return this.currentState
     }
 
-    private changeGameStatus(action: 'next'| 'attack' | 'attackFinished' | 'move'| 'previous' = "next") {
+    private changeGameStatus(action: 'next'| 'attack' | 'attackFinished' | 'move'| 'moveFinished' | 'previous' = "next") {
         switch (this.currentState) {
             case gameState.newGame:
                 this.currentState = gameState.cardsDistributed
@@ -333,7 +362,7 @@ export class Game {
             case gameState.attackFinished:
                 switch (action) {
                     case "move":
-                        this.currentState = gameState.attackFrom
+                        this.currentState = gameState.moveSoldiersFromAfterAttack
                         break;
                     default:
                         this.currentState = gameState.turnFinished
@@ -345,6 +374,9 @@ export class Game {
                     case "previous": // if we want to cancel moving of players and want to continue attacking
                         this.currentState = gameState.attackFinished
                         break;
+                    case "moveFinished": // if move is canceled in the beginning of turn
+                        this.currentState = gameState.attackFinished
+                        break;
                     default:
                         this.currentState = gameState.turnFinished
                         break;
@@ -354,6 +386,9 @@ export class Game {
                 switch (action) {
                     case "previous": // if move is canceled in the beginning of turn
                         this.currentState = gameState.finishedNewTurnSoldiers
+                        break;
+                    case "moveFinished": // if move is canceled in the beginning of turn
+                        this.currentState = gameState.attackFinished
                         break;
                     default:
                         this.currentState = gameState.turnFinished
@@ -380,6 +415,9 @@ export class Game {
     finishAttackImmediatelyPhase() {
         this.changeGameStatus("attackFinished")
     }
+    finishMovePhase() {
+        this.changeGameStatus("moveFinished")
+    }
     moveFromPhase() {
         this.changeGameStatus("move")
     }
@@ -404,7 +442,13 @@ export enum gameState {
 
 export enum AttackFromToCases {
     YOUR_OWN_TERRITORY = 'Can not attack your territory',
-    NO_OWNERSHIP = 'Can not attack your territory',
+    NO_OWNERSHIP = 'Not your territory',
     NO_BORDER = 'Territory not in border',
+    YES = 'Yes'
+}
+export enum MoveFromToCases {
+    SAME_TERRITORY = 'Can not move in same territory',
+    NO_OWNERSHIP = 'Not your territory',
+    NO_BORDER_LINK = 'Territory not connected',
     YES = 'Yes'
 }

@@ -10,7 +10,7 @@ export type GameActions =
     CreatePlayersAction | AddPlayerAction | RemoveLastPlayerAction |
     SetRulesAction | SetSettingsAction |
     ClickTerritoryAction |
-    PlayerWantsToAttackAction
+    PlayerWantsToAttackAction | PlayerWantsToMoveAction
 
 export interface SetGameObjectAction {
     type: ReducerActionType.CREATE_GAME_OBJECT,
@@ -45,4 +45,7 @@ export interface ClickTerritoryAction {
 }
 export interface PlayerWantsToAttackAction {
     type: ReducerActionType.PLAYER_CHOOSE_ATTACKING_TO,
+}
+export interface PlayerWantsToMoveAction {
+    type: ReducerActionType.PLAYER_CHOOSE_MOVING_TO,
 }

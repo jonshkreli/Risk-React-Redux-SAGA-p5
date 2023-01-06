@@ -86,6 +86,20 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
           }
         }
         return state
+    case ReducerActionType.PLAYER_CHOOSE_MOVING_TO:
+      //perform a move
+      if(game && clickedTerritoryFrom && clickedTerritoryTo) {
+        console.log('reducer perform attack')
+        const result = game.performAMove(clickedTerritoryFrom, clickedTerritoryTo, 1)
+        let message = state.message
+        if(result) {
+          message = result
+          return { ...state, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message}
+        } else {
+          return { ...state, game, message: 'Move was performed successfully', modalCoordinates: {x: 0, y: 0}, clickedTerritoryFrom: '', clickedTerritoryTo: '', }
+        }
+      }
+      return state
     default:
       return state;
   }
