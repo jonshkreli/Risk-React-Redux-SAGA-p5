@@ -54,25 +54,6 @@ export class Game {
         shuffleArray(this.cards)
     }
 
-    nextPlayerTurn() {
-        if(this.playerTurn.hasOccupiedTerritory) {
-            this.currentPLayerDrawOneCard();
-            this.playerTurn.hasOccupiedTerritory = false; //reset
-        }
-
-        let position = this.players.indexOf(this.playerTurn);
-
-        if(position === this.players.length - 1) { //if it the last player in array
-            this.playerTurn = this.players[0];
-        } else if(position < this.players.length - 1) {
-            this.playerTurn = this.players[position+1];
-        }
-
-        this.currentState = gameState.newTurn;
-        this.playerTurn.isPlaying = false;
-        this.calculateSoldiersToPut();
-    }
-
     hasCurrentPlayerWon() {
         if(this.settings.TerritoriesToWin.value === 'all') {
             let Won = true;
@@ -195,6 +176,7 @@ export class Game {
     /*
     * If yes, remove from players
     * */
+
     isPlayerOutOfGame(playerIndex: number) {
         if(this.players[playerIndex].territories.length === 0) {
             let removedPlayer = this.players[playerIndex];
@@ -203,7 +185,6 @@ export class Game {
            return removedPlayer;
         } else return false;
     }
-
     doesTerritoryBelongToPlayer(terr: CountryName, player: Player = this.playerTurn) {
         return !!player.territories.find(e => e.name === terr);
     }
@@ -419,14 +400,35 @@ export class Game {
     attackFromPhase() {
         this.changeGameStatus("attack")
     }
+
     finishAttackImmediatelyPhase() {
         this.changeGameStatus("attackFinished")
+    }
+    moveFromPhase() {
+        this.changeGameStatus("move")
     }
     finishMovePhase() {
         this.changeGameStatus("moveFinished")
     }
-    moveFromPhase() {
-        this.changeGameStatus("move")
+    nextPlayerTurn() {
+        if(this.currentState !== gameState.turnFinished) throw "Can not change turn when turn is not finished."
+
+        if(this.playerTurn.hasOccupiedTerritory) {
+            this.currentPLayerDrawOneCard();
+            this.playerTurn.hasOccupiedTerritory = false; //reset
+        }
+
+        let position = this.players.indexOf(this.playerTurn);
+
+        if(position === this.players.length - 1) { //if it is the last player in array
+            this.playerTurn = this.players[0];
+        } else if(position < this.players.length - 1) {
+            this.playerTurn = this.players[position+1];
+        }
+
+        this.currentState = gameState.newTurn;
+        this.playerTurn.isPlaying = false;
+        this.calculateSoldiersToPut();
     }
 
 

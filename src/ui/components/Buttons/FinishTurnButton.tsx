@@ -24,7 +24,8 @@ export const FinishTurnButton: React.FC = () => {
     }
 
     const finishTurn = () => {
-        game.nextGamePhase()
+        game.nextGamePhase() // finish turn
+        game.nextPlayerTurn()
         dispatch(setGameObject(game))
     }
 
