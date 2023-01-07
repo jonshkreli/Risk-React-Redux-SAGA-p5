@@ -232,11 +232,14 @@ export class Game {
 
         let attackResult = attack(this, from, to,attackingDices);
 
-        if(attackResult) this.playerWantToMoveSolders = true
+        if(attackResult) {
+            this.playerWantToMoveSolders = true
+            return AttackFromToCases.YES
+        }
 
         console.log(attackResult, this.playerWantToMoveSolders)
 
-        return undefined
+        return AttackFromToCases.COULD_NOT_INVADE_TERRITORY
     }
 
     get playerWantToMoveSolders(): boolean {
@@ -501,6 +504,7 @@ export enum AttackFromToCases {
     YOUR_OWN_TERRITORY = 'Can not attack your territory',
     NO_OWNERSHIP = 'Not your territory',
     NO_BORDER = 'Territory not in border',
+    COULD_NOT_INVADE_TERRITORY = 'Could not invade territory',
     YES = 'Yes'
 }
 export enum MoveFromToCases {

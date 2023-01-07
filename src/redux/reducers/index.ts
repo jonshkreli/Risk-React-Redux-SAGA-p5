@@ -1,5 +1,5 @@
 import {ReducerActionType} from "../types";
-import {Game, gameState} from "../../game/models/Game";
+import {AttackFromToCases, Game, gameState} from "../../game/models/Game";
 import {Player} from "../../game/models/Player";
 import {initialSettings, rules, Rules, SettingsInterface} from "../../game/constants/settingsConfig";
 import {GameActions} from "../actions/gameActions";
@@ -77,21 +77,25 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
     case ReducerActionType.PLAYER_CHOOSE_ATTACKING_TO:
       //perform an attack
         if(game && clickedTerritoryFrom && clickedTerritoryTo) {
-          console.log('reducer perform attack')
           const result = game.performAnAttack(clickedTerritoryFrom, clickedTerritoryTo, 3, true)
-          let message = state.message
-          if(result) {
-            message = result
-            return { ...state, game, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message}
-          } else {
-            return { ...state, game, message: 'Attack was performed successfully', modalCoordinates: {x: 0, y: 0}}
+          let message = result.toString()
+
+          switch (result) {
+              // @ts-ignore
+            case AttackFromToCases.YES:
+              message = 'Attack was performed successfully'
+            case AttackFromToCases.COULD_NOT_INVADE_TERRITORY:
+              return { ...state, game, message, modalCoordinates: {x: 0, y: 0}}
+            default:
+              return { ...state, game, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message}
           }
         }
         return state
     case ReducerActionType.PLAYER_CHOOSE_MOVING_TO:
-      //perform a move
-     game?.moveFromPhase()
-      return { ...state, game}
+      if (!game) return state
+      //trigger a move
+      game.playerWantToMoveSolders = true
+      return {...state, game}
     case ReducerActionType.PLAYER_WANT_TO_MOVE_SOLDERS_TO:
       //perform a move
       if(game && clickedTerritoryFrom && clickedTerritoryTo) {
@@ -102,7 +106,7 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
           message = result
           return { ...state, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message}
         } else {
-          return { ...state, game, message: 'Move was performed successfully', modalCoordinates: {x: 0, y: 0}, clickedTerritoryFrom: '', clickedTerritoryTo: '', }
+          return { ...state, game, modalCoordinates: {x: 0, y: 0}, message: 'Move was performed successfully', clickedTerritoryFrom: '', clickedTerritoryTo: '', }
         }
       }
       return state
