@@ -2,3 +2,9 @@
     display: flex;
     justify-content: space-between;
 }
+
+.map-and-sidebar {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+}

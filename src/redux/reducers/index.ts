@@ -15,6 +15,7 @@ export interface DefaultReducerStateType {
   clickedTerritoryFrom: CountryName | '',
   clickedTerritoryTo: CountryName | '',
   modalCoordinates: Point,
+  solders: number,
   message: string,
 }
 
@@ -27,6 +28,7 @@ const defaultReducerState: DefaultReducerStateType = {
   clickedTerritoryFrom: '',
   clickedTerritoryTo: '',
   modalCoordinates: {x: 0, y: 0},
+  solders: 0,
   message: ''
 }
 
@@ -76,21 +78,25 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
       //perform an attack
         if(game && clickedTerritoryFrom && clickedTerritoryTo) {
           console.log('reducer perform attack')
-          const result = game.performAnAttack(clickedTerritoryFrom, clickedTerritoryTo)
+          const result = game.performAnAttack(clickedTerritoryFrom, clickedTerritoryTo, 3, true)
           let message = state.message
           if(result) {
             message = result
-            return { ...state, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message}
+            return { ...state, game, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message}
           } else {
-            return { ...state, game, message: 'Attack was performed successfully', modalCoordinates: {x: 0, y: 0}, clickedTerritoryFrom: '', clickedTerritoryTo: '', }
+            return { ...state, game, message: 'Attack was performed successfully', modalCoordinates: {x: 0, y: 0}}
           }
         }
         return state
     case ReducerActionType.PLAYER_CHOOSE_MOVING_TO:
       //perform a move
+     game?.moveFromPhase()
+      return { ...state, game}
+    case ReducerActionType.PLAYER_WANT_TO_MOVE_SOLDERS_TO:
+      //perform a move
       if(game && clickedTerritoryFrom && clickedTerritoryTo) {
         console.log('reducer perform attack')
-        const result = game.performAMove(clickedTerritoryFrom, clickedTerritoryTo, 1)
+        const result = game.performAMove(clickedTerritoryFrom, clickedTerritoryTo, action.payload.solders)
         let message = state.message
         if(result) {
           message = result

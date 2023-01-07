@@ -1,11 +1,12 @@
 import {Game, gameState} from "../models/Game";
 import {CountryName} from "../constants/CountryName";
 import {Territory} from "../constants/Territory";
+import {getBiggestSmallestDices, getNRandomDices, getRandomDice} from "./smallUtils";
 
-export function attack(game: Game, from: CountryName, to: CountryName, numberOfDices: number = 3, ) {
+export function attack(game: Game, from: CountryName, to: CountryName, numberOfDices: number = 3, attackAgain: boolean = false) {
     const attackingPlayer = game.playerTurn
 
-    const fromTerritory = attackingPlayer.territories.find(t => t.name === from)
+    const fromTerritory = attackingPlayer.getTerritory(from)
     if(!fromTerritory) throw `Territory ${from} does not belong to attacking player ${attackingPlayer.name}`
 
     const terrAndPlayer = getTerritoryAndPLayerFromName(to, game)
@@ -21,14 +22,11 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
 
     let result;
     if(numberOfDices === 3) {
-         result = threeDice(attackingNumber, defendingNumber);
-
+         result = threeDice(attackingNumber, defendingNumber, attackAgain);
     } else if(numberOfDices === 2) {
-         result = twoDice(numberOfDices, defendingNumber);
-
+         result = twoDice(attackingNumber, defendingNumber, attackAgain);
     } else if(numberOfDices === 1) {
-         result = oneDice(numberOfDices, defendingNumber);
-
+         result = oneDice(attackingNumber, defendingNumber, attackAgain);
     } else throw 'number of dices is '+ numberOfDices;
 
     const attackingSoldersLeft = result[0]
@@ -36,20 +34,18 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
     if(attackingSoldersLeft === 0) { //attacking finished in this part no more soldiers to attack
         console.log("attacking finished from this state no more soldiers to attack");
         fromTerritory.soldiers = 1;
+        attackingPlayer.hasOccupiedTerritory = false;
+        return false
     } else if(result[1] === 0) { //occupy territory
-        console.log(attackingSoldersLeft + " moving to " + to);
-
         attackedPLayer.removeTerritory(to)
-        toTerritory.soldiers = attackingSoldersLeft
+        toTerritory.soldiers = 0
         attackingPlayer.addTerritory(toTerritory)
 
         //make player able to draw a card
         attackingPlayer.hasOccupiedTerritory = true;
 
-        //change number of soldiers to attacking territory to 1
         // TODO user must decide how many solders he/she wants to move
-        fromTerritory.soldiers = 1;
-
+        // fromTerritory.soldiers = 1;
 
         let playerWins = game.hasCurrentPlayerWon();
 
@@ -62,194 +58,97 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
        if(attackedPLayer.isPlayerOutOfGame()) {
            console.log('player '+ attackedPLayer.name + " is out of game.")
        }
+
+       return true
     }
-
-    const canPlayerAttack = game.canStillPlayerAttackThisTurn()
-
-    console.log("game.canStillPlayerAttackThisTurn()", canPlayerAttack)
-
-    switch (game.getState) {
-        case gameState.firstAttackFrom:
-            if (canPlayerAttack) game.nextGamePhase()
-            else game.finishAttackImmediatelyPhase()
-            break
-        case gameState.attackFrom:
-            if (canPlayerAttack) game.previousGamePhase()
-            else game.nextGamePhase()
-            break
-        default:
-            throw "When an attack happens game phase must be firstAttackFrom or attackFrom"
-    }
+    // both territories have still solders
+    return false
 
 }
 
 
-function threeDice(attackingNumber: number, defendingNumber: number): [number, number] {
-    if(attackingNumber < 3 ) throw 'attacking number is '+ attackingNumber +". Must be 3";
+function threeDice(attackingNumber: number, defendingNumber: number, attackAgain = false): [number, number] {
+    if(attackingNumber < 3 ) throw 'attacking number is '+ attackingNumber +". Must be 3 or more";
 
-
-    if(defendingNumber === 0) {
-        return [attackingNumber, 0]
-    }
-    if(attackingNumber === 0){
-        return [0, defendingNumber]
-    }
+    if(defendingNumber === 0) return [attackingNumber, 0]
 
     if(defendingNumber === 1) { //1 defending dice
-        let attackersDice = Math.max(getRandomDice(), Math.max(getRandomDice(), getRandomDice()));
-        let defenderDice = getRandomDice();
+        const attackerDiceBig = Math.max(...getNRandomDices(3));
+        const defenderDice = getRandomDice();
 
-        if(attackersDice > defenderDice) {
-            defendingNumber--;
-        } else {
-            attackingNumber--;
-        }
-
-
-        if(attackingNumber>=3) {
-            return threeDice(attackingNumber, defendingNumber);
-        } else if(attackingNumber === 2) {
-            return twoDice(attackingNumber, defendingNumber);
-        }
-         else throw 'Attackers are ' + attackingNumber;
+        if(attackerDiceBig > defenderDice) defendingNumber--; else attackingNumber--;
     }
     else if(defendingNumber >= 2){ //2 defending dice
-        let attackerDice1 = getRandomDice(), attackerDice2 = getRandomDice(), attackerDice3 = getRandomDice(),
-            defenderDice1 = getRandomDice(), defenderDice2 = getRandomDice();
+        const attackerDices = getNRandomDices(3)
+        const defenderDices = getNRandomDices(2)
+        const {attackerDiceBig, attackerDiceSmall, defenderDiceBig, defenderDiceSmall} = getBiggestSmallestDices(attackerDices, defenderDices)
 
-        let attackerDiceBig = Math.max(attackerDice1, Math.max(attackerDice2, attackerDice3));
-        let attackerDiceSmall = [attackerDice1,attackerDice2,attackerDice3].sort()[1];
-        let defenderDiceBig = Math.max(defenderDice1, defenderDice2), defenderDiceSmall = Math.max(defenderDice1, defenderDice2);
-
-        if(attackerDiceBig > defenderDiceBig) {
-            defendingNumber--;
-        } else {
-            attackingNumber--;
-        }
-        if(attackerDiceSmall > defenderDiceSmall) {
-            defendingNumber--;
-        } else {
-            attackingNumber--;
-        }
-
-        if(attackingNumber>=3) {
-            return threeDice(attackingNumber, defendingNumber);
-        } else if(attackingNumber === 2) {
-            return twoDice(attackingNumber, defendingNumber);
-        } else if(attackingNumber === 1) {
-            return oneDice(attackingNumber, defendingNumber);
-        }else if(attackingNumber === 0){
-            return [0, defendingNumber]
-        }
-        else throw 'Attackers are ' + attackingNumber;
-
+        if (attackerDiceBig > defenderDiceBig) defendingNumber--; else attackingNumber--;
+        if (attackerDiceSmall > defenderDiceSmall) defendingNumber--; else attackingNumber--;
     } else throw 'defenders are '+ defendingNumber;
+
+    if (attackAgain)
+        if (attackingNumber >= 3) return threeDice(attackingNumber, defendingNumber, attackAgain);
+        else if (attackingNumber === 2) return twoDice(attackingNumber, defendingNumber, attackAgain);
+        else if (attackingNumber === 1) return oneDice(attackingNumber, defendingNumber, attackAgain);
+        else if (attackingNumber === 0) return [0, defendingNumber];
+        else throw 'Attackers are ' + attackingNumber;
+    else return [attackingNumber, defendingNumber]
 
 }
 
-function twoDice(attackingNumber: 2, defendingNumber: number): [number, number]  {
-    if(attackingNumber !== 2) throw 'attacking number is '+ attackingNumber +". Must be 2";
+function twoDice(attackingNumber: number, defendingNumber: number, attackAgain = false): [number, number]  {
+    if(attackingNumber < 2) throw 'attacking number is '+ attackingNumber +". Must be 2 or more";
 
-
-    if(defendingNumber === 0) {
-        return [attackingNumber, 0]
-    }
+    if(defendingNumber === 0) return [attackingNumber, 0]
 
     if(defendingNumber === 1) { //1 defending dice
-        let attackersDice = Math.max(getRandomDice(), getRandomDice());
+        let attackersDice = Math.max(...getNRandomDices(2));
         let defenderDice = getRandomDice();
 
-        if(attackersDice > defenderDice) {
-            defendingNumber--;
-        } else {
-            attackingNumber--;
-        }
-
-        if(attackingNumber === 2) {
-            return twoDice(attackingNumber, defendingNumber);
-        } else if(attackingNumber === 1) {
-            return oneDice(attackingNumber, defendingNumber);
-        }
-         else throw 'Attackers are ' + attackingNumber;
+        if(attackersDice > defenderDice) defendingNumber--; else attackingNumber--;
     }
-
     else if(defendingNumber >= 2){ //2 defending dice
-        let attackerDice1 = getRandomDice(), attackerDice2 = getRandomDice(),
-            defenderDice1 = getRandomDice(), defenderDice2 = getRandomDice();
+        const attackerDices = getNRandomDices(2)
+        const defenderDices = getNRandomDices(2)
+        const {attackerDiceBig, attackerDiceSmall, defenderDiceBig, defenderDiceSmall} = getBiggestSmallestDices(attackerDices, defenderDices)
 
-        let attackerDiceBig = Math.max(attackerDice1, attackerDice2), attackerDiceSmall = Math.min(attackerDice1, attackerDice2);
-        let defenderDiceBig = Math.max(defenderDice1, defenderDice2), defenderDiceSmall = Math.min(defenderDice1, defenderDice2);
-
-        if(attackerDiceBig > defenderDiceBig) {
-            defendingNumber--;
-        } else {
-            attackingNumber--;
-        }
-        if(attackerDiceSmall > defenderDiceSmall) {
-            defendingNumber--;
-        } else {
-            attackingNumber--;
-        }
-
-
-        if(attackingNumber === 2) {
-            return twoDice(attackingNumber, defendingNumber);
-        } else if(attackingNumber === 1) {
-            return oneDice(attackingNumber, defendingNumber);
-        }else if(attackingNumber === 0){
-            return [0, defendingNumber]
-        }
-        else throw 'Attackers are ' + attackingNumber;
-
+        if(attackerDiceBig > defenderDiceBig) defendingNumber--; else attackingNumber--;
+        if(attackerDiceSmall > defenderDiceSmall) defendingNumber--; else attackingNumber--;
     } else throw 'defenders are '+ defendingNumber;
+
+    if (attackAgain) //will attack with 3 dices as did in first time. If player wants to attack with more he/she can use threeDice (if there are enough solders)
+        if (attackingNumber >= 2) return twoDice(attackingNumber, defendingNumber, attackAgain);
+        else if (attackingNumber === 1) return oneDice(attackingNumber, defendingNumber, attackAgain);
+        else if (attackingNumber === 0) return [0, defendingNumber];
+        else throw 'Attackers are ' + attackingNumber;
+    else return [attackingNumber, defendingNumber]
 }
 
-function oneDice(attackingNumber: 1, defendingNumber: number): [number, number]  {
+function oneDice(attackingNumber: number, defendingNumber: number, attackAgain = false): [number, number]  {
 
-    if(defendingNumber === 0) {
-        return [attackingNumber, 0]
-    }
+    if(defendingNumber === 0) return [attackingNumber, 0]
 
     if(defendingNumber === 1) { //1 defending dice
         let attackersDice = getRandomDice();
         let defenderDice = getRandomDice();
 
-        if(attackersDice > defenderDice) {
-            defendingNumber--;
-        } else {
-            attackingNumber--;
-        }
-
-        if(attackingNumber === 1) {
-            return oneDice(attackingNumber, defendingNumber);
-        } else if(attackingNumber === 0){
-            return [0, defendingNumber]
-        }
-        else throw 'Attackers are ' + attackingNumber;
+        if(attackersDice > defenderDice) defendingNumber--; else attackingNumber--;
     }
     else if(defendingNumber >= 2){ //2 defending dice
         let attackersDice = getRandomDice();
-        let defenderDice = Math.max(getRandomDice(), getRandomDice());
+        let defenderDice = Math.max(...getNRandomDices(2));
 
-        if(attackersDice > defenderDice) {
-            defendingNumber--;
-        } else {
-            attackingNumber--;
-        }
-
-        if(attackingNumber === 1) {
-            return oneDice(attackingNumber, defendingNumber);
-        } else if(attackingNumber === 0){
-            return [0, defendingNumber]
-        }
-        else throw 'Attackers are ' + attackingNumber;
-
+        if(attackersDice > defenderDice) defendingNumber--; else attackingNumber--;
 
     } else throw 'defenders are '+ defendingNumber;
-}
 
-function getRandomDice() {
-    return Math.floor( Math.random() * 6 ) + 1;
+    if (attackAgain)
+        if (attackingNumber >= 1) return oneDice(attackingNumber, defendingNumber, attackAgain);
+        else if (attackingNumber === 0) return [0, defendingNumber];
+        else throw 'Attackers are ' + attackingNumber;
+    else return [attackingNumber, defendingNumber]
+
 }
 
 function getTerritoryAndPLayerFromName(territoryToFind: CountryName, game: Game) {

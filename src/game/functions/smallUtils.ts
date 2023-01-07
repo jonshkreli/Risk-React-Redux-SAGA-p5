@@ -19,3 +19,21 @@ export function shuffleArray(arr: any[]) {
         arr[j] = temp
     }
 }
+
+export function getRandomDice() {
+    return Math.floor( Math.random() * 6 ) + 1;
+}
+
+export const getNRandomDices = (n: number) => {
+  const dices = []
+    for (let i = 1; i <= n; i++) dices.push(getRandomDice())
+
+    return dices
+}
+
+export const getBiggestSmallestDices = (attackerDices: number[], defenderDices: number[]) => {
+    const attackerDiceBig = Math.max(...attackerDices), attackerDiceSmall = Math.min(...attackerDices);
+    const defenderDiceBig = Math.max(...defenderDices), defenderDiceSmall = Math.min(...defenderDices);
+
+    return {attackerDiceBig, attackerDiceSmall, defenderDiceBig, defenderDiceSmall}
+}

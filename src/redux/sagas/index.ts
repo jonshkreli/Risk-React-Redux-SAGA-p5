@@ -42,8 +42,8 @@ function* updatePlayersTable() {
 
 function* triggerAttackOrMove() {
     const game: Game | undefined = yield select((state: DefaultReducerStateType) => state.game);
-
-    if (!game) return
+    console.log('triggerAttackOrMove')
+    if (!game || game.playerWantToMoveSolders) return
     switch (game.getState) {
         case gameState.moveSoldiersFromAfterAttack:
         case gameState.moveSoldiersFromNoAttack:
@@ -58,6 +58,7 @@ function* triggerAttackOrMove() {
             // do nothing
     }
 }
+
 
 function* actionWatcher1() {
     yield takeLatest(GET_LAST_NEWS, fetchLatestNews)

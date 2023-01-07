@@ -10,42 +10,56 @@ export type GameActions =
     CreatePlayersAction | AddPlayerAction | RemoveLastPlayerAction |
     SetRulesAction | SetSettingsAction |
     ClickTerritoryAction |
-    PlayerWantsToAttackAction | PlayerWantsToMoveAction
+    PlayerWantsToAttackAction | PlayerWantsToMoveAction | MoveSoldersAction
 
 export interface SetGameObjectAction {
     type: ReducerActionType.CREATE_GAME_OBJECT,
     payload: { game: Game }
 }
+
 export interface CreatePlayersAction {
     type: ReducerActionType.SET_PLAYERS,
     payload: { players: Player[] }
 }
+
 export interface AddPlayerAction {
     type: ReducerActionType.ADD_PLAYER,
     payload: { player: Player }
 }
+
 export interface SetPlayerAction {
     type: ReducerActionType.SET_PLAYER,
     payload: { player: Player }
 }
+
 export interface RemoveLastPlayerAction {
     type: ReducerActionType.REMOVE_LAST_PLAYER,
 }
+
 export interface SetRulesAction {
     type: ReducerActionType.SET_RULES,
     payload: { rules: Rules }
 }
+
 export interface SetSettingsAction {
     type: ReducerActionType.SET_SETTINGS,
     payload: { settings: SettingsInterface }
 }
+
 export interface ClickTerritoryAction {
     type: ReducerActionType.CLICK_TERRITORY,
     payload: { territory: CountryName | '', clickCoordinates: Point }
 }
+
 export interface PlayerWantsToAttackAction {
     type: ReducerActionType.PLAYER_CHOOSE_ATTACKING_TO,
 }
+
 export interface PlayerWantsToMoveAction {
     type: ReducerActionType.PLAYER_CHOOSE_MOVING_TO,
+}
+
+export interface MoveSoldersAction {
+    type: ReducerActionType.PLAYER_WANT_TO_MOVE_SOLDERS_TO,
+    payload: { solders: number }
 }

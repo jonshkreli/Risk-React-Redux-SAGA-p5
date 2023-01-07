@@ -9,6 +9,7 @@ import {canNotAttackOwnTerritoryMessage, territoryDoesNotBelongToPlayerMessage} 
 import {Territory} from "../../../game/constants/Territory";
 import {Player} from "../../../game/models/Player";
 import {canPlayerAttackFromThisTerritory} from "../../../game/functions/utils";
+import {SoldersInput} from "../SoldersInput/SoldersInput";
 
 export const TerritoryModal = () => {
     const {
@@ -131,7 +132,6 @@ export const TerritoryModal = () => {
                 <PutSoldersDialogContent {...{
                     territoryBelongToPlayer,
                     clickedTerritoryFrom,
-                    clickedTerritoryTo,
                     solders,
                     maxSolders,
                     setSolders,
@@ -152,7 +152,6 @@ interface PutSoldersDialogContentProps {
     setSolders: (solders: number) => void
     game: Game
     clickedTerritoryFrom: CountryName
-    clickedTerritoryTo: CountryName | ''
     territoryBelongToPlayer: boolean
 }
 
@@ -162,35 +161,16 @@ export const PutSoldersDialogContent: React.FC<PutSoldersDialogContentProps> = (
                                                                                     maxSolders,
                                                                                     game,
                                                                                     clickedTerritoryFrom,
-                                                                                    clickedTerritoryTo,
                                                                                     territoryBelongToPlayer
                                                                                 }) => {
-    let header = ''
 
-    const DoesNotBelongToPlayerMessage = territoryDoesNotBelongToPlayerMessage(clickedTerritoryFrom, game.playerTurn.name)
-    const canNotAttackOwnMessage = clickedTerritoryTo ? canNotAttackOwnTerritoryMessage(clickedTerritoryTo, game.playerTurn.name) : ''
+    const DoesNotBelongToPlayerMessage = territoryDoesNotBelongToPlayerMessage(clickedTerritoryFrom, game.playerTurn.name);
 
-    switch (game.getState) {
-        case gameState.newTurn:
-            header = territoryBelongToPlayer ? 'How many solders do you want to put here?' : DoesNotBelongToPlayerMessage
-            break;
-        case gameState.finishedNewTurnSoldiers:
-            header = 'What do you want to do?'
-            break;
-    }
-
+    const header = territoryBelongToPlayer ? 'How many solders do you want to put here?' : DoesNotBelongToPlayerMessage;
 
     return <div>
         <h3>{header}</h3>
-        {territoryBelongToPlayer ? <div>
-            <div>You have {maxSolders} solders to put</div>
-            <Input onChange={(e) => {
-                setSolders(Number(e.target.value))
-            }} value={solders} type={'number'} inputProps={{max: maxSolders, min: 0}}/>
-            <Button onClick={() => {
-                setSolders(maxSolders)
-            }}>All</Button>
-        </div> : ''}
+        {territoryBelongToPlayer ? <SoldersInput minSolders={0} maxSolders={maxSolders} solders={solders} setSolders={setSolders} actionName={'put'}/> : ''}
     </div>
 }
 

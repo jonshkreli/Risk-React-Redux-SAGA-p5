@@ -13,7 +13,7 @@ import {
   SetGameObjectAction,
   CreatePlayersAction,
   RemoveLastPlayerAction,
-  SetPlayerAction, PlayerWantsToAttackAction
+  SetPlayerAction, PlayerWantsToAttackAction, MoveSoldersAction
 } from "./gameActions";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
@@ -59,7 +59,9 @@ export const clickTerritory = (territory: CountryName | '', clickCoordinates: Po
   type: ReducerActionType.CLICK_TERRITORY,
   payload: {territory, clickCoordinates}
 });
-export const performAnAttack = (): PlayerWantsToAttackAction => ({
-  type: ReducerActionType.PLAYER_CHOOSE_ATTACKING_TO,
+
+export const performAMove = (solders): MoveSoldersAction => ({
+  type: ReducerActionType.PLAYER_WANT_TO_MOVE_SOLDERS_TO,
+  payload: {solders}
 });
 

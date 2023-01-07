@@ -7,9 +7,9 @@ import {CountryName} from "../constants/CountryName";
 import {attack, searchInBorders} from "../functions/attack";
 import {Territory} from "../constants/Territory";
 import {canPlayerAttackFromThisTerritory, isInBorder} from "../functions/utils";
+import React from "react";
 
 export class Game {
-
     players: Player[] = [];
     playerTurn: Player;
     soldiersToPut: number = 0;
@@ -17,6 +17,7 @@ export class Game {
     colors: (keyof typeof PlayerColors)[];
     winner: Player | undefined = undefined;
     cards: Card[];
+    private _playerWantToMoveSolders: boolean = false;
 
     private currentState: gameState;
 
@@ -220,24 +221,38 @@ export class Game {
         return false
     }
 
-    performAnAttack(from: CountryName, to: CountryName, player: Player = this.playerTurn) {
-        const {status, fromTerritory} = this.canPlayerAttackFromTo(from, to, player)
+    performAnAttack(from: CountryName, to: CountryName, attackingDices: number = 3, attackAgain: boolean = false) {
+        const {status, fromTerritory} = this.canPlayerAttackFromTo(from, to, this.playerTurn)
 
         console.log(status)
         if(status !== AttackFromToCases.YES) return status;
         if(!fromTerritory) throw 'fromTerritory must not come undefined'
 
-        if(fromTerritory.soldiers > 3) {
-            // TODO work in attack
-            attack(this, from, to,3);
-        } else if(fromTerritory.soldiers === 3){
-            attack(this, from, to,2);
-        } else if(fromTerritory.soldiers === 2){
-            attack(this, from, to,1);
-        } else if(fromTerritory.soldiers === 1){
-            throw `Can not attack from here. Here are ${fromTerritory.soldiers} soldiers.`
-        } else throw  `${fromTerritory.soldiers} soldiers.`;
+        if(fromTerritory.soldiers - 1 < attackingDices) throw `Can not attack with ${attackingDices} dices from a territory with ${fromTerritory.soldiers} solders.`
 
+        let attackResult = attack(this, from, to,attackingDices);
+
+        if(attackResult) this.playerWantToMoveSolders = true
+
+        console.log(attackResult, this.playerWantToMoveSolders)
+
+        return undefined
+    }
+
+    get playerWantToMoveSolders(): boolean {
+        return this._playerWantToMoveSolders;
+    }
+
+    set playerWantToMoveSolders(value: boolean) {
+        switch (this.currentState) {
+            case gameState.firstAttackFrom:
+            case gameState.attackFrom:
+            case gameState.moveSoldiersFromAfterAttack:
+            case gameState.moveSoldiersFromNoAttack:
+                this._playerWantToMoveSolders = value;
+                break;
+            default: throw 'Can change state only when move or attack is finished'
+        }
     }
 
     private canPlayerMoveFromTo(from: CountryName, to: CountryName, player: Player = this.playerTurn) {
@@ -255,9 +270,9 @@ export class Game {
         return {status: MoveFromToCases.YES, fromTerritory, toTerritory}
     }
 
-    performAMove(from: CountryName, to: CountryName, soldersAmount: number, player: Player = this.playerTurn) {
+    performAMove(from: CountryName, to: CountryName, soldersAmount: number) {
         if(soldersAmount<=0) throw `Player wants to move ${soldersAmount} solders. It must be at least 1 solder.`
-        const {status, fromTerritory, toTerritory} = this.canPlayerMoveFromTo(from, to, player)
+        const {status, fromTerritory, toTerritory} = this.canPlayerMoveFromTo(from, to, this.playerTurn)
 
         console.log(status)
         if(status !== MoveFromToCases.YES) return status;
@@ -266,7 +281,40 @@ export class Game {
         fromTerritory.soldiers -= soldersAmount
         toTerritory.soldiers += soldersAmount
 
-        this.finishMovePhase()
+        console.log(soldersAmount + " moving to " + to);
+
+        switch (this.currentState) {
+            case gameState.firstAttackFrom:
+            case gameState.attackFrom:
+                this.changeStatusAfterAttackAfterSoldersMoved()
+                break;
+            case gameState.moveSoldiersFromAfterAttack:
+            case gameState.moveSoldiersFromNoAttack:
+                this.finishMovePhase()
+                break;
+            default:
+                throw "Move can be performed after an attack or when player knows where to move"
+        }
+
+    }
+
+    private changeStatusAfterAttackAfterSoldersMoved() {
+        const canPlayerAttack = this.canStillPlayerAttackThisTurn()
+        this.playerWantToMoveSolders = false
+        console.log("game.canStillPlayerAttackThisTurn()", canPlayerAttack)
+
+        switch (this.currentState) {
+            case gameState.firstAttackFrom:
+                if (canPlayerAttack) this.nextGamePhase()
+                else this.finishAttackImmediatelyPhase()
+                break
+            case gameState.attackFrom:
+                if (canPlayerAttack) this.previousGamePhase()
+                else this.nextGamePhase()
+                break
+            default:
+                throw "When an attack happens game phase must be firstAttackFrom or attackFrom"
+        }
     }
 
     get getState() {

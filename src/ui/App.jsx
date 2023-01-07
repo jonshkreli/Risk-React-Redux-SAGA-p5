@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
 import {SketchContainer} from "../sketch/SketchContainer";
-import {ButtonsContainer} from "./components/ButtonsContainer";
 import {setPlayers} from "../redux/actions";
 import {useDispatch} from 'react-redux'
 import {Player} from "../game/models/Player";
@@ -8,6 +7,7 @@ import {PlayersTable} from "./components/PlayersTable";
 import {TerritoryModal} from "./components/TerritoryModal/TerritoryModal";
 import {GameStatusView} from "./components/GameStatusView";
 import "./style.css"
+import {SideBar} from "./containers/SideBar";
 
 if(window.c === undefined)
 window.c = 0
@@ -36,11 +36,10 @@ if(window.c < 10) {
 
     return (
         <div>
-            <div className='header'>
-                <ButtonsContainer/>
-                <GameStatusView/>
+            <div className='map-and-sidebar'>
+                <SketchContainer/>
+                <SideBar/>
             </div>
-            <SketchContainer/>
             <PlayersTable/>
             <TerritoryModal/>
         </div>
