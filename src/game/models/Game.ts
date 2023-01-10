@@ -1,6 +1,6 @@
 import {Player} from "./Player";
 import {Card, cards} from "../constants/cards";
-import {PlayerColors, rules, Rules, SettingsInterface} from "../constants/settingsConfig";
+import {DiceNumber, PlayerColors, rules, Rules, SettingsInterface} from "../constants/settingsConfig";
 import {ContinentName} from "../constants/continents";
 import {generateEmptyContinentsWithNumber, shuffleArray} from "../functions/smallUtils";
 import {CountryName} from "../constants/CountryName";
@@ -221,20 +221,33 @@ export class Game {
         return false
     }
 
-    performAnAttack(from: CountryName, to: CountryName, attackingDices: number = 3, attackAgain: boolean = false) {
+    getMaximumDicesAttackerCanUse(attackingTerritorySolders: number) {
+        if(attackingTerritorySolders <= 1) throw "Can not attack with 1 solder or less."
+        switch (attackingTerritorySolders) {
+            case 2: return 1
+            case 3: return 2
+            default: return 3
+        }
+    }
+
+    performAnAttack(from: CountryName, to: CountryName, attackingDices: DiceNumber, attackAgain: boolean) {
         const {status, fromTerritory} = this.canPlayerAttackFromTo(from, to, this.playerTurn)
 
-        console.log(status)
+        console.log(status, fromTerritory, this.playerTurn)
         if(status !== AttackFromToCases.YES) return status;
         if(!fromTerritory) throw 'fromTerritory must not come undefined'
 
-        if(fromTerritory.soldiers - 1 < attackingDices) throw `Can not attack with ${attackingDices} dices from a territory with ${fromTerritory.soldiers} solders.`
+        let attackingDicesFinal = attackingDices === "max" ? this.getMaximumDicesAttackerCanUse(fromTerritory.soldiers) : attackingDices
 
-        let attackResult = attack(this, from, to,attackingDices);
+        if(fromTerritory.soldiers - 1 < attackingDicesFinal) throw `Can not attack with ${attackingDices} dices from a territory with ${fromTerritory.soldiers} solders.`
+
+        let attackResult = attack(this, from, to, attackingDicesFinal, attackAgain);
 
         if(attackResult) {
             this.playerWantToMoveSolders = true
             return AttackFromToCases.YES
+        } else {
+            this.changeStatusAfterAttackAfterSoldersMoved()
         }
 
         console.log(attackResult, this.playerWantToMoveSolders)

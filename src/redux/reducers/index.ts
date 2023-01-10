@@ -65,27 +65,38 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
     }
 
     case ReducerActionType.CLICK_TERRITORY:
+      // if(state.clickedTerritoryFrom) {
+      //       return { ...state, modalCoordinates: action.payload.clickCoordinates, clickedTerritoryTo: action.payload.territory}
+      // } else {
+      //       return { ...state, modalCoordinates: action.payload.clickCoordinates, clickedTerritoryFrom: action.payload.territory}
+      // }
+      console.log(state.game?.getState, action.payload.territory)
       switch (state.game?.getState) {
         case gameState.firstAttackFrom:
         case gameState.attackFrom:
         case gameState.moveSoldiersFromAfterAttack:
         case gameState.moveSoldiersFromNoAttack:
+          if(state.clickedTerritoryFrom !== '')
           return { ...state, modalCoordinates: action.payload.clickCoordinates, clickedTerritoryTo: action.payload.territory}
+          else return state
         default:
           return { ...state, modalCoordinates: action.payload.clickCoordinates, clickedTerritoryFrom: action.payload.territory}
       }
     case ReducerActionType.PLAYER_CHOOSE_ATTACKING_TO:
       //perform an attack
         if(game && clickedTerritoryFrom && clickedTerritoryTo) {
-          const result = game.performAnAttack(clickedTerritoryFrom, clickedTerritoryTo, 3, true)
+          const attackingDices = state.settings.dicesNumber.value
+          const attackAgain = state.settings.continueAttack.value
+          const result = game.performAnAttack(clickedTerritoryFrom, clickedTerritoryTo, attackingDices, attackAgain)
           let message = result.toString()
 
           switch (result) {
               // @ts-ignore
             case AttackFromToCases.YES:
               message = 'Attack was performed successfully'
-            case AttackFromToCases.COULD_NOT_INVADE_TERRITORY:
               return { ...state, game, message, modalCoordinates: {x: 0, y: 0}}
+            case AttackFromToCases.COULD_NOT_INVADE_TERRITORY:
+              return { ...state, game, message, modalCoordinates: {x: 0, y: 0}, clickedTerritoryFrom: '', clickedTerritoryTo: ''}
             default:
               return { ...state, game, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message}
           }
@@ -110,6 +121,8 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
         }
       }
       return state
+    case ReducerActionType.SET_SETTINGS:
+      return {...state, settings: action.payload.settings}
     default:
       return state;
   }

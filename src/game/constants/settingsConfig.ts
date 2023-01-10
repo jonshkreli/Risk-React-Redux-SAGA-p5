@@ -12,10 +12,24 @@ export interface SettingsInterface {
     }
     MAXPlayerNumber: {
         value: number
+    },
+    dicesNumber: {
+        value: DiceNumber
+    },
+    continueAttack: {
+      value: boolean
+    },
+    moveAllSoldersAfterAttack: {
+        value: boolean
     }
 }
 
+export type DiceNumber = 1 | 2 | 3 | 'max'
+
 export const initialSettings: SettingsInterface = {
+    dicesNumber: {value: "max"},
+    moveAllSoldersAfterAttack: {value: false},
+    continueAttack: {value: false},
     fastGame: {
         value: true,
     },

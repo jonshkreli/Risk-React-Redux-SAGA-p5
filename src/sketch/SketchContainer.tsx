@@ -6,27 +6,11 @@ import {useDispatch, useSelector} from "react-redux";
 import {DefaultReducerStateType} from "../redux/reducers";
 import {continentsCoordinates} from "../game/constants/coordinates";
 import {clickTerritory} from "../redux/actions";
-import * as constants from "constants";
-import {CountryName} from "../game/constants/CountryName";
-import {gameState} from "../game/models/Game"; //Import this for typechecking and intellisense
-
-interface ComponentProps {
-    //Your component props
-}
-
-let x = 50;
-const y = 50;
-
-var buttonAttackFrom, buttonMoveSoldersFrom, statePressMenu, activeState;
-var game, playersTable;
-var attackFromState, moveSoldiersFromState;
-let map;
-var isInPlayersTerritoryTree = false;
 
 let z = 0;
 
-export const SketchContainer: React.FC<ComponentProps> = (props: ComponentProps) => {
-    const {players, rules, settings, game, modalCoordinates, clickedTerritoryFrom} = useSelector((state: DefaultReducerStateType) => state);
+export const SketchContainer: React.FC = () => {
+    const {players, rules, settings, game, modalCoordinates, clickedTerritoryFrom, clickedTerritoryTo} = useSelector((state: DefaultReducerStateType) => state);
     const dispatch = useDispatch()
 
     const [map, setMap] = useState<p5Types.Image|undefined>(undefined)
@@ -57,7 +41,7 @@ export const SketchContainer: React.FC<ComponentProps> = (props: ComponentProps)
         p5.text(z, 50,50)
 
         if(game) {
-            const clickResult = initTouchingRect(p5,game, continentsCoordinates)
+            const clickResult = initTouchingRect(p5,game, continentsCoordinates, clickedTerritoryFrom, clickedTerritoryTo)
             if(clickResult) {
                 const {clickedTerritory, x, y} = clickResult
                 // console.log('set clicket terr ' + clickedTerritory, {x, y})
@@ -69,9 +53,6 @@ export const SketchContainer: React.FC<ComponentProps> = (props: ComponentProps)
         }
     };
 
-    const updateTable = () => {
-
-    }
 
     return <Sketch setup={setup} draw={draw} />;
 };

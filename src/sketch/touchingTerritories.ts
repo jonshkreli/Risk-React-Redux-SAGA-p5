@@ -6,7 +6,7 @@ import {ContinentName} from "../game/constants/continents";
 import {useDispatch} from "react-redux";
 import {clickTerritory} from "../redux/actions"; //Import this for typechecking and intellisense
 
-export function initTouchingRect(p5: p5Types, game: Game, continentsCoordinates: ContinentCoordinates) {
+export function initTouchingRect(p5: p5Types, game: Game, continentsCoordinates: ContinentCoordinates, clickedTerritoryFrom: CountryName | '', clickedTerritoryTo: CountryName | '') {
     p5.noFill()
     p5.stroke('blue');
 
@@ -178,7 +178,19 @@ export function initTouchingRect(p5: p5Types, game: Game, continentsCoordinates:
                                         textvalue = t.soldiers
                                         p5.push();
                                         p5.fill(p.color)
-                                        p5.stroke(10); p5.textSize(46); p5.rectMode(p5.CENTER); // Set rectMode to CENTER
+
+                                        let strokeColor = 'gray', strokeWeight = 1;
+
+                                        if(clickedTerritoryFrom === stateKey) {
+                                            strokeColor = 'blue'
+                                            strokeWeight = 10
+                                        }
+                                        if(clickedTerritoryTo === stateKey) {
+                                            strokeColor = 'orange'
+                                            strokeWeight = 10
+                                        }
+
+                                        p5.stroke(strokeColor); p5.strokeWeight(strokeWeight); p5.textSize(46); p5.rectMode(p5.CENTER); // Set rectMode to CENTER
                                         p5.text(textvalue, stateCoord.x+ stateCoord.w /2 ,  stateCoord.y+ stateCoord.h /2 );
                                         p5.pop();
                                     }

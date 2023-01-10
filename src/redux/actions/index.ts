@@ -13,10 +13,11 @@ import {
   SetGameObjectAction,
   CreatePlayersAction,
   RemoveLastPlayerAction,
-  SetPlayerAction, PlayerWantsToAttackAction, MoveSoldersAction
+  SetPlayerAction, PlayerWantsToAttackAction, MoveSoldersAction, SetSettingsAction
 } from "./gameActions";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
+import {SettingsInterface} from "../../game/constants/settingsConfig";
 
 export const getLastNews = () => ({
   type: GET_LAST_NEWS,
@@ -37,6 +38,10 @@ export const updatePlayersTable = () => ({
 export const setGameObject = (game: Game): SetGameObjectAction => ({
   type: ReducerActionType.CREATE_GAME_OBJECT,
   payload: {game}
+});
+export const setSettings = (settings: SettingsInterface): SetSettingsAction => ({
+  type: ReducerActionType.SET_SETTINGS,
+  payload: {settings}
 });
 
 export const setPlayers = (players: Player[]): CreatePlayersAction => ({
@@ -60,7 +65,7 @@ export const clickTerritory = (territory: CountryName | '', clickCoordinates: Po
   payload: {territory, clickCoordinates}
 });
 
-export const performAMove = (solders): MoveSoldersAction => ({
+export const performAMove = (solders: number): MoveSoldersAction => ({
   type: ReducerActionType.PLAYER_WANT_TO_MOVE_SOLDERS_TO,
   payload: {solders}
 });

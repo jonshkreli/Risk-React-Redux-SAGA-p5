@@ -29,23 +29,22 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
          result = oneDice(attackingNumber, defendingNumber, attackAgain);
     } else throw 'number of dices is '+ numberOfDices;
 
-    const attackingSoldersLeft = result[0]
+    const [attackingSoldersLeft, defendingSoldersLeft] = result
+
+    fromTerritory.soldiers = attackingSoldersLeft + 1 // attacking solders + 1 solder that stays in the ground
+    toTerritory.soldiers = defendingSoldersLeft
+
 
     if(attackingSoldersLeft === 0) { //attacking finished in this part no more soldiers to attack
         console.log("attacking finished from this state no more soldiers to attack");
-        fromTerritory.soldiers = 1;
         attackingPlayer.hasOccupiedTerritory = false;
         return false
-    } else if(result[1] === 0) { //occupy territory
+    } else if(defendingSoldersLeft === 0) { //occupy territory
         attackedPLayer.removeTerritory(to)
-        toTerritory.soldiers = 0
         attackingPlayer.addTerritory(toTerritory)
 
         //make player able to draw a card
         attackingPlayer.hasOccupiedTerritory = true;
-
-        // TODO user must decide how many solders he/she wants to move
-        // fromTerritory.soldiers = 1;
 
         let playerWins = game.hasCurrentPlayerWon();
 
