@@ -25,7 +25,7 @@ export const ButtonsContainer = () => {
         }
     }
 
-    return <div>
+    return <div className={'ButtonsContainer'}>
         <Button onClick={onStartGameClick}>Start game</Button>
         <FinishTurnButton/>
         <CancelButton/>

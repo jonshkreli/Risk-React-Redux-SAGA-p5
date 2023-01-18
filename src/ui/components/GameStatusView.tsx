@@ -13,19 +13,18 @@ export const GameStatusView = () => {
         clickedTerritoryTo,
         message: reducerMsg
     } = useSelector((state: DefaultReducerStateType) => state);
-    const dispatch = useDispatch()
 
-    if (!game) return <span>Game has not started yet</span>
+    if (!game) return <div className='GameStatusView'>Game has not started yet</div>
 
     const {playerTurn, soldiersToPut, getInitialSoldersToPut} = game
 
     const playerName = playerTurn.name
 
-    let message = ''
+    let message = reducerMsg
 
-    const territoryBelongToPlayer = !!clickedTerritoryFrom && game.doesTerritoryBelongToPlayer(clickedTerritoryFrom, playerTurn)
-    clickedTerritoryFrom ? territoryDoesNotBelongToPlayerMessage(clickedTerritoryFrom, game.playerTurn.name) : 'invalid territory clicked';
-    const canNotAttackOwnMessage = clickedTerritoryTo ? canNotAttackOwnTerritoryMessage(clickedTerritoryTo, game.playerTurn.name) : 'invalid territory clicked'
+    // const territoryBelongToPlayer = !!clickedTerritoryFrom && game.doesTerritoryBelongToPlayer(clickedTerritoryFrom, playerTurn)
+    // clickedTerritoryFrom ? territoryDoesNotBelongToPlayerMessage(clickedTerritoryFrom, game.playerTurn.name) : 'invalid territory clicked';
+    // const canNotAttackOwnMessage = clickedTerritoryTo ? canNotAttackOwnTerritoryMessage(clickedTerritoryTo, game.playerTurn.name) : 'invalid territory clicked'
 
 
     const currentState = game.getState;
@@ -62,12 +61,11 @@ export const GameStatusView = () => {
             break;
     }
 
-    return <div>
-        <div>{currentState}</div>
+    return <div className='GameStatusView'>
+        <h3 className='currentState'>{currentState}</h3>
         <h3>Player {playerTurn.name} has a total of {getInitialSoldersToPut} solders to put</h3>
         <h3>Player {playerTurn.name} has {soldiersToPut} solders remaining to put</h3>
-        <h3>{message}</h3>
-        <div>{clickedTerritoryFrom} <span>-&gt;</span> {clickedTerritoryTo}</div>
-        <div>{reducerMsg}</div>
+        <h3 className='clicked-territories'>{clickedTerritoryFrom} <span>-&gt;</span> {clickedTerritoryTo}</h3>
+        <h3 className='message'>{message}</h3>
     </div>
 }

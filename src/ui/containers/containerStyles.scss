@@ -1,0 +1,42 @@
+
+$sideBarContainerPaddings: 20px 5px;
+$background1: #eee;
+$background2: #ccc;
+
+
+.ButtonsContainer {
+  padding: $sideBarContainerPaddings;
+  background: $background1;
+}
+.GameStatusView {
+  padding: $sideBarContainerPaddings;
+  background: $background2;
+
+  .currentState {
+    color: darkred;
+  }
+
+  .clicked-territories {
+    color: orangered;
+  }
+
+  .message {
+    color: darkblue;
+  }
+}
+.SettingsContainer {
+  padding: $sideBarContainerPaddings;
+  background: $background1;
+
+  .dicesSettings {
+    flex-flow: row;
+    label {
+      margin-right: 20px;
+    }
+  }
+}
+
+.SoldersMovingTo {
+  padding: $sideBarContainerPaddings;
+  background: $background2;
+}

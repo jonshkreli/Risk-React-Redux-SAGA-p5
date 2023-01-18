@@ -124,8 +124,9 @@ export const TerritoryModal = () => {
 
     return <Popover open={isPopoverOpen} anchorPosition={{left, top}} anchorReference='anchorPosition'>
         {clickedTerritoryFrom ? <DialogContent>
-            <h4>Territory {clickedTerritoryFrom} clicked</h4>
-            <span style={{color: game.playerTurn.color}}>{game.playerTurn.name}</span>
+            <h4>Territory <span style={{color: territoryBelongToPlayer ? game.playerTurn.color : "black"}}>{clickedTerritoryFrom}</span> clicked</h4>
+            <span><span style={{color: game.playerTurn.color}}>{game.playerTurn.name}</span> action</span>
+
             {showActionButtons ?
                 <ButtonsDialogContent territoryBelongToPlayer={territoryBelongToPlayer} gameStatus={gamePhase}
                                       buttonAction={setPlayerAction} playerTerritory={playerTerritory} player={playerTurn}/> :

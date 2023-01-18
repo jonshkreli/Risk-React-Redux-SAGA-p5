@@ -47,7 +47,7 @@ export const SoldersMovingTo = () => {
     }
 
 
-    return <div>
+    return <div className='SoldersMovingTo'>
         <h4>How many players you want to move to {clickedTerritoryTo}</h4>
         <SoldersInput minSolders={minSolders} maxSolders={maxSolders} solders={solders} setSolders={setSolders} actionName={'move'}/>
         <Button onClick={onOk}>MOVE</Button>

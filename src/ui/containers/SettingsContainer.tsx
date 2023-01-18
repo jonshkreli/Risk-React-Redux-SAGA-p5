@@ -9,7 +9,7 @@ export const SettingsContainer = () => {
     const {settings, game} = useSelector((state: DefaultReducerStateType) => state);
     const dispatch = useDispatch()
 
-    const dicesOptions: (1 | 2 | 3 | 'max')[] = [1 , 2 , 3 , 'max']
+    const dicesOptions: (1 | 2 | 3 | 'max')[] = [1, 2, 3, 'max']
 
     const onDiceChange = (d: 1 | 2 | 3 | 'max') => {
 
@@ -55,34 +55,31 @@ export const SettingsContainer = () => {
         dispatch(setSettings(modifiedSettings))
     }, [settings.continueAttack.value, settings.moveAllSoldersAfterAttack.value, settings.dicesNumber.value])
 
-    return <div>
+    return <div className='SettingsContainer'>
         <div>
             <div>How many dices do you want to use?</div>
             <div>
-                <FormGroup>
+                <FormGroup className='dicesSettings'>
                     {dicesOptions.map(d => {
-                        return <FormControlLabel onChange={() => {onDiceChange(d)}}  label={d} key={d} control={<Checkbox value={d} checked={settings.dicesNumber.value === d}/>} />
+                        return <FormControlLabel onChange={() => {
+                            onDiceChange(d)
+                        }} label={d} key={d} control={<Checkbox value={d}
+                                                                checked={settings.dicesNumber.value === d}/>}/>
                     })}
                 </FormGroup>
             </div>
         </div>
         <div>
-            <div>Continuous attack?</div>
-            <div>
-                <Checkbox onChange={onContinueAttackChange} checked={settings.continueAttack.value}/>
-            </div>
+            <span>Continuous attack?</span>
+            <Checkbox onChange={onContinueAttackChange} checked={settings.continueAttack.value}/>
         </div>
         <div>
-            <div>Move all solders after attack?</div>
-            <div>
-                <Checkbox onChange={onMoveSoldersChange} checked={settings.moveAllSoldersAfterAttack.value}/>
-            </div>
+            <span>Move all solders after attack?</span>
+            <Checkbox onChange={onMoveSoldersChange} checked={settings.moveAllSoldersAfterAttack.value}/>
         </div>
         <div>
-            <div>Do or die attack and continue?</div>
-            <div>
-                <Checkbox onChange={onDoOrDieAttackChange} checked={settings.DoOrDieAttack.value}/>
-            </div>
+            <span>Do or die attack and continue?</span>
+            <Checkbox onChange={onDoOrDieAttackChange} checked={settings.DoOrDieAttack.value}/>
         </div>
     </div>
 }
