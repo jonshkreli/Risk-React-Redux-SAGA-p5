@@ -8,6 +8,7 @@ import {attack, searchInBorders} from "../functions/attack";
 import {Territory} from "../constants/Territory";
 import {canPlayerAttackFromThisTerritory, isInBorder} from "../functions/utils";
 import React from "react";
+import {performAMove} from "../../redux/actions";
 
 export class Game {
     players: Player[] = [];
@@ -163,6 +164,8 @@ export class Game {
     }
 
     putAvailableSoldiers(territory: CountryName, soldersNumber: number) {
+        if(!(this.getState === gameState.newTurn)) throw `Game state must be ${gameState.newTurn}`
+
         if(soldersNumber > this.soldiersToPut) throw `Can not put more than ${soldersNumber} solders.`
         this.playerTurn.putSoldersInTerritory(territory, soldersNumber)
         this.soldiersToPut -= soldersNumber
@@ -230,10 +233,12 @@ export class Game {
         }
     }
 
-    performAnAttack(from: CountryName, to: CountryName, attackingDices: DiceNumber, attackAgain: boolean) {
+    performAnAttack(from: CountryName, to: CountryName, attackingDices: DiceNumber, attackAgain: boolean, moveAllSoldersAfterAttack: boolean) {
+        if(!(this.getState === gameState.attackFrom || this.getState === gameState.firstAttackFrom)) throw `Game state must be ${gameState.attackFrom} or ${gameState.firstAttackFinished}`
+
         const {status, fromTerritory} = this.canPlayerAttackFromTo(from, to, this.playerTurn)
 
-        console.log(status, fromTerritory, this.playerTurn)
+        // console.log(status, fromTerritory, this.playerTurn)
         if(status !== AttackFromToCases.YES) return status;
         if(!fromTerritory) throw 'fromTerritory must not come undefined'
 
@@ -244,13 +249,17 @@ export class Game {
         let attackResult = attack(this, from, to, attackingDicesFinal, attackAgain);
 
         if(attackResult) {
-            this.playerWantToMoveSolders = true
+            if(moveAllSoldersAfterAttack) {
+                this.performAMove(from, to,fromTerritory.soldiers-1)
+            } else {
+                this.playerWantToMoveSolders = true
+            }
             return AttackFromToCases.YES
         } else {
             this.changeStatusAfterAttackAfterSoldersMoved()
         }
 
-        console.log(attackResult, this.playerWantToMoveSolders)
+        // console.log(attackResult, this.playerWantToMoveSolders)
 
         return AttackFromToCases.COULD_NOT_INVADE_TERRITORY
     }
@@ -263,8 +272,8 @@ export class Game {
         switch (this.currentState) {
             case gameState.firstAttackFrom:
             case gameState.attackFrom:
-            case gameState.moveSoldiersFromAfterAttack:
-            case gameState.moveSoldiersFromNoAttack:
+            case gameState.moveSoldiersFrom:
+            case gameState.firstMoveSoldersFrom:
                 this._playerWantToMoveSolders = value;
                 break;
             default: throw 'Can change state only when move or attack is finished'
@@ -288,30 +297,32 @@ export class Game {
 
     performAMove(from: CountryName, to: CountryName, soldersAmount: number) {
         if(soldersAmount<=0) throw `Player wants to move ${soldersAmount} solders. It must be at least 1 solder.`
+
         const {status, fromTerritory, toTerritory} = this.canPlayerMoveFromTo(from, to, this.playerTurn)
 
-        console.log(status)
+        // console.log(status)
         if(status !== MoveFromToCases.YES) return status;
         if(!fromTerritory || !toTerritory) throw 'fromTerritory and toTerritory must not come undefined'
 
         fromTerritory.soldiers -= soldersAmount
         toTerritory.soldiers += soldersAmount
 
-        console.log(soldersAmount + " moving to " + to);
+        // console.log(soldersAmount + " moving to " + to);
 
-        switch (this.currentState) {
+        switch (this.getState) {
             case gameState.firstAttackFrom:
             case gameState.attackFrom:
                 this.changeStatusAfterAttackAfterSoldersMoved()
                 break;
-            case gameState.moveSoldiersFromAfterAttack:
-            case gameState.moveSoldiersFromNoAttack:
+            case gameState.moveSoldiersFrom:
+            case gameState.firstMoveSoldersFrom:
                 this.finishMovePhase()
                 break;
             default:
                 throw "Move can be performed after an attack or when player knows where to move"
         }
 
+        return status
     }
 
     private changeStatusAfterAttackAfterSoldersMoved() {
@@ -319,7 +330,7 @@ export class Game {
         this.playerWantToMoveSolders = false
         console.log("game.canStillPlayerAttackThisTurn()", canPlayerAttack)
 
-        switch (this.currentState) {
+        switch (this.getState) {
             case gameState.firstAttackFrom:
                 if (canPlayerAttack) this.nextGamePhase()
                 else this.finishAttackImmediatelyPhase()
@@ -359,13 +370,12 @@ export class Game {
                         this.currentState = gameState.firstAttackFrom
                         break;
                     case "move":
-                        this.currentState = gameState.moveSoldiersFromNoAttack
+                        this.currentState = gameState.firstMoveSoldersFrom
                         break;
                     case "next":
                         this.currentState = gameState.turnFinished
                         break;
                     default: throw `${this.currentState}: Action must be attack or move or next`
-
                 }
                 break;
             case gameState.firstAttackFrom:
@@ -389,7 +399,7 @@ export class Game {
                         this.currentState = gameState.attackFrom
                         break;
                     case "move": // move solders
-                        this.currentState = gameState.moveSoldiersFromAfterAttack
+                        this.currentState = gameState.moveSoldiersFrom
                         break;
                     case "next":
                         this.currentState = gameState.turnFinished
@@ -411,7 +421,7 @@ export class Game {
             case gameState.attackFinished:
                 switch (action) {
                     case "move":
-                        this.currentState = gameState.moveSoldiersFromAfterAttack
+                        this.currentState = gameState.moveSoldiersFrom
                         break;
                     case "next":
                         this.currentState = gameState.turnFinished
@@ -419,31 +429,31 @@ export class Game {
                     default: throw `${this.currentState}: Action must be move or next`
                 }
                 break;
-            case gameState.moveSoldiersFromAfterAttack:
-                switch (action) {
-                    case "previous": // if we want to cancel moving of players and want to continue attacking
-                        this.currentState = gameState.firstAttackFinished
-                        break;
-                    case "moveFinished": // if move is canceled in the beginning of turn
-                        this.currentState = gameState.attackFinished
-                        break;
-                    case "next":
-                        this.currentState = gameState.turnFinished
-                        break;
-                    default: throw `${this.currentState}: Action must be previous or moveFinished or next`
-                }
-                break;
-            case gameState.moveSoldiersFromNoAttack:
+            case gameState.firstMoveSoldersFrom:
                 switch (action) {
                     case "previous": // if move is canceled in the beginning of turn
                         this.currentState = gameState.finishedNewTurnSoldiers
                         break;
+                    case "moveFinished": // if move is finished
+                        this.currentState = gameState.attackFinished
+                        break;
+                    // case "next":
+                    //     this.currentState = gameState.turnFinished
+                    //     break;
+                    default: throw `${this.currentState}: Action must be previous or moveFinished or next`
+                }
+                break;
+            case gameState.moveSoldiersFrom:
+                switch (action) {
+                    case "previous": // if we want to cancel moving of players and want to continue attacking
+                        this.currentState = gameState.attackFinished
+                        break;
                     case "moveFinished": // if move is canceled in the beginning of turn
                         this.currentState = gameState.attackFinished
                         break;
-                    case "next":
-                        this.currentState = gameState.turnFinished
-                        break;
+                    // case "next":
+                    //     this.currentState = gameState.turnFinished
+                    //     break;
                     default: throw `${this.currentState}: Action must be previous or moveFinished or next`
                 }
                 break;
@@ -475,7 +485,7 @@ export class Game {
         this.changeGameStatus("moveFinished")
     }
     nextPlayerTurn() {
-        if(this.currentState !== gameState.turnFinished) throw "Can not change turn when turn is not finished."
+        if(this.getState !== gameState.turnFinished) throw "Can not change turn when turn is not finished."
 
         if(this.playerTurn.hasOccupiedTerritory) {
             this.currentPLayerDrawOneCard();
@@ -508,8 +518,8 @@ export enum gameState {
     firstAttackFinished='First Attack Finished',
     attackFrom='Attack From',
     attackFinished='Attack Finished',
-    moveSoldiersFromAfterAttack = 'Move Soldiers From After Attack',
-    moveSoldiersFromNoAttack = 'Move Soldiers From No Attack',
+    moveSoldiersFrom = 'Move Soldiers From',
+    firstMoveSoldersFrom = 'First Move Soldiers From',
     turnFinished='Turn Finished',
 }
 

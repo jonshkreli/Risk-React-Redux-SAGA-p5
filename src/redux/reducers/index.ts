@@ -1,5 +1,5 @@
 import {ReducerActionType} from "../types";
-import {AttackFromToCases, Game, gameState} from "../../game/models/Game";
+import {AttackFromToCases, Game, gameState, MoveFromToCases} from "../../game/models/Game";
 import {Player} from "../../game/models/Player";
 import {initialSettings, rules, Rules, SettingsInterface} from "../../game/constants/settingsConfig";
 import {GameActions} from "../actions/gameActions";
@@ -74,8 +74,8 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
       switch (state.game?.getState) {
         case gameState.firstAttackFrom:
         case gameState.attackFrom:
-        case gameState.moveSoldiersFromAfterAttack:
-        case gameState.moveSoldiersFromNoAttack:
+        case gameState.moveSoldiersFrom:
+        case gameState.firstMoveSoldersFrom:
           if(state.clickedTerritoryFrom !== '')
           return { ...state, modalCoordinates: action.payload.clickCoordinates, clickedTerritoryTo: action.payload.territory}
           else return state
@@ -87,11 +87,11 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
         if(game && clickedTerritoryFrom && clickedTerritoryTo) {
           const attackingDices = state.settings.dicesNumber.value
           const attackAgain = state.settings.continueAttack.value
-          const result = game.performAnAttack(clickedTerritoryFrom, clickedTerritoryTo, attackingDices, attackAgain)
+          const moveAllSoldersAfterAttack = state.settings.moveAllSoldersAfterAttack.value
+          const result = game.performAnAttack(clickedTerritoryFrom, clickedTerritoryTo, attackingDices, attackAgain, moveAllSoldersAfterAttack)
           let message = result.toString()
 
           switch (result) {
-              // @ts-ignore
             case AttackFromToCases.YES:
               message = 'Attack was performed successfully'
               return { ...state, game, message, modalCoordinates: {x: 0, y: 0}}
@@ -111,16 +111,20 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
       //perform a move
       if(game && clickedTerritoryFrom && clickedTerritoryTo) {
         console.log('reducer perform attack')
-        const result = game.performAMove(clickedTerritoryFrom, clickedTerritoryTo, action.payload.solders)
-        let message = state.message
-        if(result) {
-          message = result
+        let message: string = game.performAMove(clickedTerritoryFrom, clickedTerritoryTo, action.payload.solders)
+        if(message !== MoveFromToCases.YES) {
           return { ...state, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message}
         } else {
-          return { ...state, game, modalCoordinates: {x: 0, y: 0}, message: 'Move was performed successfully', clickedTerritoryFrom: '', clickedTerritoryTo: '', }
+          message = `${action.payload.solders} solders moved from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
+          return { ...state, game, modalCoordinates: {x: 0, y: 0}, message, clickedTerritoryFrom: '', clickedTerritoryTo: '', }
         }
       }
       return state
+    case ReducerActionType.CANCEL_ACTION:
+      if(!game) return state
+
+      game.previousGamePhase()
+      return { ...state, game, modalCoordinates: {x: 0, y: 0}, message: 'Action was canceled', clickedTerritoryFrom: '', clickedTerritoryTo: '', }
     case ReducerActionType.SET_SETTINGS:
       return {...state, settings: action.payload.settings}
     default:

@@ -10,7 +10,7 @@ export type GameActions =
     CreatePlayersAction | AddPlayerAction | RemoveLastPlayerAction |
     SetRulesAction | SetSettingsAction |
     ClickTerritoryAction |
-    PlayerWantsToAttackAction | PlayerWantsToMoveAction | MoveSoldersAction
+    PlayerWantsToAttackAction | PlayerWantsToMoveAction | MoveSoldersAction | CancelAction
 
 export interface SetGameObjectAction {
     type: ReducerActionType.CREATE_GAME_OBJECT,
@@ -62,4 +62,8 @@ export interface PlayerWantsToMoveAction {
 export interface MoveSoldersAction {
     type: ReducerActionType.PLAYER_WANT_TO_MOVE_SOLDERS_TO,
     payload: { solders: number }
+}
+
+export interface CancelAction {
+    type: ReducerActionType.CANCEL_ACTION,
 }

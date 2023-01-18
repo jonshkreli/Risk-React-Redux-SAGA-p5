@@ -32,8 +32,8 @@ export const SoldersMovingTo = () => {
         case gameState.attackFrom:
             minSolders = 3
             break;
-        case gameState.moveSoldiersFromAfterAttack:
-        case gameState.moveSoldiersFromNoAttack:
+        case gameState.moveSoldiersFrom:
+        case gameState.firstMoveSoldersFrom:
             minSolders = 1
             break;
         default:

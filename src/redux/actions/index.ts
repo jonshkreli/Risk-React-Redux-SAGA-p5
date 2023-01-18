@@ -13,7 +13,7 @@ import {
   SetGameObjectAction,
   CreatePlayersAction,
   RemoveLastPlayerAction,
-  SetPlayerAction, PlayerWantsToAttackAction, MoveSoldersAction, SetSettingsAction
+  SetPlayerAction, PlayerWantsToAttackAction, MoveSoldersAction, SetSettingsAction, CancelAction
 } from "./gameActions";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
@@ -68,5 +68,9 @@ export const clickTerritory = (territory: CountryName | '', clickCoordinates: Po
 export const performAMove = (solders: number): MoveSoldersAction => ({
   type: ReducerActionType.PLAYER_WANT_TO_MOVE_SOLDERS_TO,
   payload: {solders}
+});
+
+export const cancelAction = (): CancelAction => ({
+  type: ReducerActionType.CANCEL_ACTION,
 });
 

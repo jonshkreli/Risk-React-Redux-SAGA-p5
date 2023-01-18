@@ -32,8 +32,8 @@ export const TerritoryModal = () => {
         switch (game?.getState) {
             case gameState.firstAttackFrom:
             case gameState.attackFrom:
-            case gameState.moveSoldiersFromAfterAttack:
-            case gameState.moveSoldiersFromNoAttack:
+            case gameState.moveSoldiersFrom:
+            case gameState.firstMoveSoldersFrom:
                 terrToClick = clickedTerritoryFrom
                 break;
         }
@@ -76,8 +76,8 @@ export const TerritoryModal = () => {
             case gameState.attackFinished:
                 showActionButtons = true
                 break;
-            case gameState.moveSoldiersFromAfterAttack:
-            case gameState.moveSoldiersFromNoAttack:
+            case gameState.moveSoldiersFrom:
+            case gameState.firstMoveSoldersFrom:
                 isPopoverOpen = false
                 break;
             case gameState.turnFinished:
@@ -105,7 +105,7 @@ export const TerritoryModal = () => {
                 break;
             case gameState.attackFinished:
                 break;
-            case gameState.moveSoldiersFromNoAttack:
+            case gameState.firstMoveSoldersFrom:
                 break;
             case gameState.turnFinished:
                 break;

@@ -3,7 +3,7 @@ import {Button} from "@mui/material";
 import {useDispatch, useSelector} from "react-redux";
 import {DefaultReducerStateType} from "../../../redux/reducers";
 import {gameState} from "../../../game/models/Game";
-import {setGameObject} from "../../../redux/actions";
+import {cancelAction, setGameObject} from "../../../redux/actions";
 
 export const CancelButton: React.FC = () => {
     const {game} = useSelector((state: DefaultReducerStateType) => state);
@@ -20,16 +20,15 @@ export const CancelButton: React.FC = () => {
         case gameState.attackFrom:
             isCancelDisabled = false
             break;
-        case gameState.moveSoldiersFromAfterAttack:
-        case gameState.moveSoldiersFromNoAttack:
+        case gameState.moveSoldiersFrom:
+        case gameState.firstMoveSoldersFrom:
             isCancelDisabled = false
             break;
     }
 
-    const cancelAction = () => {
-        game.previousGamePhase()
-        dispatch(setGameObject(game))
+    const onCancelClick = () => {
+        dispatch(cancelAction())
     }
 
-    return <Button disabled={isCancelDisabled} onClick={cancelAction}>Cancel</Button>
+    return <Button disabled={isCancelDisabled} onClick={onCancelClick}>Cancel</Button>
 }

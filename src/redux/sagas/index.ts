@@ -45,8 +45,8 @@ function* triggerAttackOrMove() {
     console.log('triggerAttackOrMove')
     if (!game || game.playerWantToMoveSolders) return
     switch (game.getState) {
-        case gameState.moveSoldiersFromAfterAttack:
-        case gameState.moveSoldiersFromNoAttack:
+        case gameState.moveSoldiersFrom:
+        case gameState.firstMoveSoldersFrom:
             yield put({type: ReducerActionType.PLAYER_CHOOSE_MOVING_TO});
             // TODO implement PLAYER_CHOOSE_MOVING_TO in reducer
             break;

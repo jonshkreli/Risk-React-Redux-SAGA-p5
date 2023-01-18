@@ -46,14 +46,14 @@ export const GameStatusView = () => {
         case gameState.finishedNewTurnSoldiers:
             message = `What does ${playerName} want to do?`
             break;
-        case gameState.firstAttackFrom:
-        case gameState.attackFrom:
-            message = territoryBelongToPlayer ? canNotAttackOwnMessage : `${playerName}: is attacking from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
-            break;
-        case gameState.moveSoldiersFromAfterAttack:
-        case gameState.moveSoldiersFromNoAttack:
-            message = territoryBelongToPlayer ? 'How many solders do you want to move here?' : `${playerName}: is moving solders from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
-            break;
+        // case gameState.firstAttackFrom:
+        // case gameState.attackFrom:
+        //     message = territoryBelongToPlayer ? canNotAttackOwnMessage : `${playerName}: is attacking from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
+        //     break;
+        // case gameState.moveSoldiersFrom:
+        // case gameState.firstMoveSoldersFrom:
+        //     message = territoryBelongToPlayer ? 'How many solders do you want to move here?' : `${playerName}: is moving solders from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
+        //     break;
         case gameState.turnFinished:
             message = `${playerName} finished turn`
             break;
