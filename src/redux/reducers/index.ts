@@ -5,10 +5,11 @@ import {initialSettings, rules, Rules, SettingsInterface} from "../../game/const
 import {GameActions} from "../actions/gameActions";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
+import {PlayerDetails} from "../../game/models/PlayerDetails";
 
 export interface DefaultReducerStateType {
   game: Game | undefined,
-  players: Player[] | undefined,
+  players: PlayerDetails[],
   rules: Rules,
   settings: SettingsInterface,
   loading: boolean,
@@ -21,7 +22,7 @@ export interface DefaultReducerStateType {
 
 const defaultReducerState: DefaultReducerStateType = {
   game: undefined,
-  players: undefined,
+  players: [],
   rules: rules,
   settings: initialSettings,
   loading: false,
@@ -46,22 +47,21 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
       return { ...state, game: action.payload.game, loading: false }
 
     case ReducerActionType.SET_PLAYERS:
-      if(game) game.players = action.payload.players
+      if(game) game.setPlayersFromPlayerDetails = action.payload.players
       return { ...state, players: action.payload.players, game, loading: false }
 
     case ReducerActionType.ADD_PLAYER: {
       const players = [...state.players || []]
       players.push(action.payload.player)
-      if(game) game.players = players
-      return { ...state, players, game, loading: false }
+      // if(game) game.players = players
+      return { ...state, players, loading: false }
     }
 
     case ReducerActionType.REMOVE_LAST_PLAYER: {
       if(!state.players) throw 'There is no player to remove'
       const players = [...state.players]
       players.pop()
-      if(game) game.players = players
-      return { ...state, players, game, loading: false }
+      return { ...state, players, loading: false }
     }
 
     case ReducerActionType.CLICK_TERRITORY:

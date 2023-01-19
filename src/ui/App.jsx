@@ -8,6 +8,7 @@ import {TerritoryModal} from "./components/TerritoryModal/TerritoryModal";
 import {GameStatusView} from "./components/GameStatusView";
 import "./style.css"
 import {SideBar} from "./containers/SideBar";
+import {PlayerDetails} from "../game/models/PlayerDetails";
 
 if(window.c === undefined)
 window.c = 0
@@ -16,8 +17,8 @@ let App = () => {
 
     useEffect(() => {
 
-        const player1 = new Player('player1', "human")
-        const player2 = new Player('player2', "human")
+        const player1 = new PlayerDetails('player1', "human")
+        const player2 = new PlayerDetails('player2', "human")
 
 if(window.c < 10) {
     console.log('dispatch')

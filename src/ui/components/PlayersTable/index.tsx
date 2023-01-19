@@ -7,6 +7,7 @@ import {addPlayer, removeLastPlayer, setPlayer, setPlayers} from "../../../redux
 import {PlayerTypeSwitch} from "../PlayerTypeSwitch";
 
 import "./style.css"
+import {PlayerDetails} from "../../../game/models/PlayerDetails";
 
 interface PlayersTableProps {
 
@@ -18,13 +19,13 @@ export const PlayersTable = (props: PlayersTableProps) => {
 
     // if(game && players && JSON.stringify(game.players.map(p => ({...p, game: undefined}))) !== JSON.stringify(players.map(p => ({...p, game: undefined})))) {throw "no consistency"}
 
-    const hasReachedMAXPlayers = players && players.length >= settings.MAXPlayerNumber.value
+    const hasReachedMAXPlayers = players.length >= settings.MAXPlayerNumber.value
 
     const createPlayer = () => {
         if(game) throw 'Game has started'
         if(hasReachedMAXPlayers) throw `Maximum allowed players is ${settings.MAXPlayerNumber.value}`
 
-        const player = new Player('player', "human")
+        const player = new PlayerDetails('player', "human")
         dispatch(addPlayer(player))
     }
     const deleteLastPlayer = () => {
@@ -33,9 +34,8 @@ export const PlayersTable = (props: PlayersTableProps) => {
         dispatch(removeLastPlayer())
     }
 
-    const setPlayerType = (field: 'type' | 'name', value: string | PlayerType,p: Player) => {
+    const setPlayerType = (field: 'type' | 'name', value: string | PlayerType,p: Player | PlayerDetails) => {
         if(game) throw 'Game has started!'
-        if(!players) throw 'No players available!'
 
         const player = players.find(pl => pl.name === p.name)
 
@@ -46,6 +46,8 @@ export const PlayersTable = (props: PlayersTableProps) => {
 
         dispatch(setPlayers(players))
     }
+
+    let playersToShow: (PlayerDetails | Player)[] = game?.players? game.players : players
 
 
     return <div>
@@ -58,7 +60,7 @@ export const PlayersTable = (props: PlayersTableProps) => {
                 </TableRow>
             </TableHead>
             <TableBody>
-                {players?.map(p => {
+                {playersToShow?.map(p => {
                     const playerHasTurn = game?.playerTurn.name === p.name
                     const tableCellStyle = {color: p.color}
 

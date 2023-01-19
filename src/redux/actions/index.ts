@@ -18,6 +18,7 @@ import {
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
 import {SettingsInterface} from "../../game/constants/settingsConfig";
+import {PlayerDetails} from "../../game/models/PlayerDetails";
 
 export const getLastNews = () => ({
   type: GET_LAST_NEWS,
@@ -44,16 +45,16 @@ export const setSettings = (settings: SettingsInterface): SetSettingsAction => (
   payload: {settings}
 });
 
-export const setPlayers = (players: Player[]): CreatePlayersAction => ({
+export const setPlayers = (players: PlayerDetails[]): CreatePlayersAction => ({
   type: ReducerActionType.SET_PLAYERS,
   payload: {players}
 });
 
-export const addPlayer = (player: Player): AddPlayerAction => ({
+export const addPlayer = (player: PlayerDetails): AddPlayerAction => ({
   type: ReducerActionType.ADD_PLAYER,
   payload: {player}
 });
-export const setPlayer = (player: Player): SetPlayerAction => ({
+export const setPlayer = (player: PlayerDetails): SetPlayerAction => ({
   type: ReducerActionType.SET_PLAYER,
   payload: {player}
 });

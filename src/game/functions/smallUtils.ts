@@ -37,3 +37,10 @@ export const getBiggestSmallestDices = (attackerDices: number[], defenderDices: 
 
     return {attackerDiceBig, attackerDiceSmall, defenderDiceBig, defenderDiceSmall}
 }
+
+export const generateRandomColor = () => {
+  const get0255 = () => {
+    return Math.round(Math.random() * 255)
+  }
+  return `rgb(${get0255()},${get0255()},${get0255()})`
+}

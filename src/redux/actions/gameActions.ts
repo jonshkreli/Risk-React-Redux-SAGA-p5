@@ -4,6 +4,7 @@ import {Player} from "../../game/models/Player";
 import {Rules, SettingsInterface} from "../../game/constants/settingsConfig";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
+import {PlayerDetails} from "../../game/models/PlayerDetails";
 
 export type GameActions =
     SetGameObjectAction |
@@ -19,17 +20,17 @@ export interface SetGameObjectAction {
 
 export interface CreatePlayersAction {
     type: ReducerActionType.SET_PLAYERS,
-    payload: { players: Player[] }
+    payload: { players: PlayerDetails[] }
 }
 
 export interface AddPlayerAction {
     type: ReducerActionType.ADD_PLAYER,
-    payload: { player: Player }
+    payload: { player: PlayerDetails }
 }
 
 export interface SetPlayerAction {
     type: ReducerActionType.SET_PLAYER,
-    payload: { player: Player }
+    payload: { player: PlayerDetails }
 }
 
 export interface RemoveLastPlayerAction {

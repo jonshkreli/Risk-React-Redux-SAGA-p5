@@ -5,22 +5,15 @@ import {CountryName} from "../constants/CountryName";
 import {checkAttackingPathsFromTo} from "../ai/helpingFunctions";
 import {AttackingRates} from "./AttackingRates";
 import {PlayerColors} from "../constants/settingsConfig";
+import {PlayerDetails} from "./PlayerDetails";
 
-export class Player {
-    name: string;
-    color: keyof typeof PlayerColors | undefined = undefined;
+export class Player extends PlayerDetails {
     private _hasOccupiedTerritory: boolean = false;
     game: Game | undefined = undefined;
     isPlaying = false;
-    territories: Territory[];
-    cards: Card[];
-    type: PlayerType;
 
-   constructor(name: string, type: PlayerType = 'human') {
-       this.name = name;
-       this.type = type
-       this.territories = [];
-       this.cards = [];
+   constructor(player: PlayerDetails) {
+       super(player.name, player.type)
    }
 
    play(activeState: CountryName, attackFromState: CountryName ) {
@@ -167,6 +160,14 @@ export class Player {
         this._hasOccupiedTerritory = value;
     }
 
+    public get color(): keyof typeof PlayerColors | undefined {
+        return this._color;
+    }
+
+    set color(value: keyof typeof PlayerColors | undefined) {
+       if(!value) throw `Value must be one of ${PlayerColors}`
+        this._color = value;
+    }
 
 }
 

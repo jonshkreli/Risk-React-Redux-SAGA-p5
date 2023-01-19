@@ -8,15 +8,16 @@ import {Territory} from "../constants/Territory";
 import {canPlayerAttackFromThisTerritory, isInBorder} from "../functions/utils";
 import {GamePhases} from "./GamePhases";
 import {GameActions} from "./GameActions";
+import {PlayerDetails} from "./PlayerDetails";
 
 export class Game implements GamePhases, GameActions {
-    players: Player[] = [];
-    playerTurn: Player;
+    private _players: Player[] = [];
+    private _playerTurn: Player;
     private _soldiersToPut: number = 0;
     private initialSoldersToPut: number = 0;
-    colors: (keyof typeof PlayerColors)[];
+    private readonly colors: (keyof typeof PlayerColors)[]; // Colors can be changed during the game
     winner: Player | undefined = undefined;
-    cards: Card[];
+    private _cards: Card[];
     private _playerWantToMoveSolders: boolean = false;
 
     private currentState: gameState;
@@ -24,30 +25,63 @@ export class Game implements GamePhases, GameActions {
     private settings: SettingsInterface;
     private rules: Rules
 
-    constructor(players: Player[], settings: SettingsInterface, rules: Rules) {
-        this.players = players;
+    constructor(playerDetailsList: PlayerDetails[], settings: SettingsInterface, rules: Rules) {
+        this.currentState = gameState.newGame;
+
+        this.setPlayersFromPlayerDetails = playerDetailsList;
         this.settings = settings;
         this.rules = rules;
         this.colors = Object.keys(PlayerColors).filter((v) => isNaN(Number(v))) as (keyof typeof PlayerColors)[]
 
-        if(players.length > 6) {
-            throw 'max number of players is 6';
+        if(playerDetailsList.length > 6 || playerDetailsList.length < 2) {
+            throw 'max number of players is 6 and minimum is 2';
         }
 
         for (let i = 0; i< this.players.length; i++) {
             this.players[i].color = this.colors[i];
         }
 
-        this.currentState = gameState.newGame;
 
-        this.playerTurn = this.players[0];
+        this._playerTurn = this.players[0];
         this.setSoldiersToPut();
 
-        this.cards =  [...cards];
+        this._cards =  [...cards];
         this.shuffleCards()
     }
 
     // ==== getters setters ====
+
+    get players(): Player[] {
+        return this._players;
+    }
+
+    private set players(value: Player[]) {
+        this._players = value;
+    }
+
+    set setPlayersFromPlayerDetails(playerDetailsList: PlayerDetails[]) {
+        if(this.getState !== gameState.newGame) throw `Players can be set only when we have ${gameState.newGame}.`
+        this.players = playerDetailsList.map(p => Game.createPlayerFromPlayerDetails(p))
+    }
+
+    get playerTurn(): Player {
+        return this._playerTurn;
+    }
+
+    set playerTurn(value: Player) {
+        if(!(this.getState === gameState.newGame || this.getState === gameState.turnFinished)) throw `Player turn can be changed only when we have ${gameState.newGame} or ${gameState.turnFinished}.`
+        this._playerTurn = value;
+    }
+
+    get cards(): Card[] {
+        return this._cards;
+    }
+
+    private set cards(value: Card[]) {
+        this._cards = value;
+    }
+
+
     get playerWantToMoveSolders(): boolean {
         return this._playerWantToMoveSolders;
     }
@@ -82,14 +116,15 @@ export class Game implements GamePhases, GameActions {
     private currentPLayerDrawOneCard() {
         if(this.getState !== gameState.turnFinished) throw "Can not draw card when turn is not finished."
 
+        // TODO this must never happen
         if(this.cards.length === 0) {
             this.cards = [...cards];
             this.shuffleCards()
         }
 
-        // @ts-ignore
-        let card: Card = this.cards.pop();
-        this.playerTurn.cards.push(card);
+        const lastCard = this.cards.pop()
+        if(!lastCard) throw "Game don't have any card to distribute."
+        this.playerTurn.cards.push(lastCard);
     }
 
     assignCardsToPlayers() {
@@ -101,10 +136,10 @@ export class Game implements GamePhases, GameActions {
         this.nextGamePhase()
 
         function  assignCardToPlayerRecursive () {
-            if(th.cards.length === 0) throw "Game don't have any card to distribute."
+            const lastCard = th.cards.pop()
+            if(!lastCard) throw "Game don't have any card to distribute."
 
-            // @ts-ignore
-            th.players[playerTurnToTakeCard].cards.push(th.cards.pop());
+            th.players[playerTurnToTakeCard].cards.push(lastCard);
 
             //if player turn goes to the last element of players array restart it to 0
             if(playerTurnToTakeCard === th.players.length -1 ) {
@@ -284,7 +319,7 @@ export class Game implements GamePhases, GameActions {
     }
 
     private set playerHasOccupiedTerritory(occupation: boolean) {
-        this.attackStatusChecker()
+        if(!(this.getState === gameState.attackFrom || this.getState === gameState.firstAttackFrom || this.getState === gameState.turnFinished)) throw `Game state must be ${gameState.attackFrom} or ${gameState.firstAttackFinished} or ${gameState.turnFinished}`
         this.playerTurn.hasOccupiedTerritory = occupation
     }
 
@@ -452,18 +487,22 @@ export class Game implements GamePhases, GameActions {
     }
     nextPlayerTurn() {
         if(this.getState !== gameState.turnFinished) throw "Can not change turn when turn is not finished."
+        console.log(this.currentState)
+        // this.nextGamePhase()
+        console.log(this.currentState)
 
         if(this.playerTurn.hasOccupiedTerritory) {
             this.currentPLayerDrawOneCard();
             this.playerHasOccupiedTerritory = false; //reset
         }
 
-        let position = this.players.indexOf(this.playerTurn);
-
-        if(position === this.players.length - 1) { //if it is the last player in array
-            this.playerTurn = this.players[0];
-        } else if(position < this.players.length - 1) {
-            this.playerTurn = this.players[position+1];
+        for (let i = 0; i < this.players.length; i++){
+            const this_player = this.players[i];
+            if(this_player === this.playerTurn) {
+                const next_player = this.players[i+1];
+                this.playerTurn = next_player ? next_player : this.players[0]
+                break
+            }
         }
 
         this.currentState = gameState.newTurn;
@@ -532,6 +571,10 @@ export class Game implements GamePhases, GameActions {
             if(canPlayerAttackFromThisTerritory(player, territory.name)) return true
         }
         return false
+    }
+
+    private static createPlayerFromPlayerDetails(playerD: PlayerDetails) {
+        return new Player(playerD);
     }
 
     static getMaximumDicesAttackerCanUse(attackingTerritorySolders: number) {
