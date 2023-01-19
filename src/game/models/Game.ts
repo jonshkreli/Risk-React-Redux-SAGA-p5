@@ -1,19 +1,18 @@
 import {Player} from "./Player";
 import {Card, cards} from "../constants/cards";
 import {DiceNumber, PlayerColors, rules, Rules, SettingsInterface} from "../constants/settingsConfig";
-import {ContinentName} from "../constants/continents";
 import {generateEmptyContinentsWithNumber, shuffleArray} from "../functions/smallUtils";
 import {CountryName} from "../constants/CountryName";
 import {attack, searchInBorders} from "../functions/attack";
 import {Territory} from "../constants/Territory";
 import {canPlayerAttackFromThisTerritory, isInBorder} from "../functions/utils";
-import React from "react";
-import {performAMove} from "../../redux/actions";
+import {GamePhases} from "./GamePhases";
+import {GameActions} from "./GameActions";
 
-export class Game {
+export class Game implements GamePhases, GameActions {
     players: Player[] = [];
     playerTurn: Player;
-    soldiersToPut: number = 0;
+    private _soldiersToPut: number = 0;
     private initialSoldersToPut: number = 0;
     colors: (keyof typeof PlayerColors)[];
     winner: Player | undefined = undefined;
@@ -39,37 +38,50 @@ export class Game {
             this.players[i].color = this.colors[i];
         }
 
+        this.currentState = gameState.newGame;
+
         this.playerTurn = this.players[0];
-        this.calculateSoldiersToPut();
+        this.setSoldiersToPut();
 
         this.cards =  [...cards];
         this.shuffleCards()
-
-        this.currentState = gameState.newGame;
     }
 
-    shufflePlayers() {
-        shuffleArray(this.players)
+    // ==== getters setters ====
+    get playerWantToMoveSolders(): boolean {
+        return this._playerWantToMoveSolders;
     }
 
-    shuffleCards() {
-        shuffleArray(this.cards)
+    set playerWantToMoveSolders(value: boolean) {
+        switch (this.currentState) {
+            case gameState.firstAttackFrom:
+            case gameState.attackFrom:
+            case gameState.moveSoldiersFrom:
+            case gameState.firstMoveSoldersFrom:
+                this._playerWantToMoveSolders = value;
+                break;
+            default: throw 'Can change state only when move or attack is finished'
+        }
     }
 
-    hasCurrentPlayerWon() {
-        if(this.settings.TerritoriesToWin.value === 'all') {
-            let Won = true;
-
-            for (let pl of this.players) {
-                if(pl === this.playerTurn) continue;
-                if(pl.territories.length > 0) Won = false;
-            }
-
-            return Won;
-        } else return this.playerTurn.territories.length >= this.settings.TerritoriesToWin.value;
+    get getInitialSoldersToPut() {
+        return this.initialSoldersToPut
     }
 
-    currentPLayerDrawOneCard() {
+    get soldiersToPut(): number {
+        return this._soldiersToPut;
+    }
+
+    private set soldiersToPut(value: number) {
+        this.calculateSoldersTuPutStatusChecker()
+        this._soldiersToPut = value;
+    }
+
+    // ==== actions ====
+
+    private currentPLayerDrawOneCard() {
+        if(this.getState !== gameState.turnFinished) throw "Can not draw card when turn is not finished."
+
         if(this.cards.length === 0) {
             this.cards = [...cards];
             this.shuffleCards()
@@ -81,6 +93,8 @@ export class Game {
     }
 
     assignCardsToPlayers() {
+        if(this.getState !== gameState.newGame) throw `Can not assign cards in ${this.getState} state. This can happen only in ${gameState.newGame}`
+
         let playerTurnToTakeCard = 0;
         let th: Game = this;
         assignCardToPlayerRecursive();
@@ -106,6 +120,8 @@ export class Game {
     }
 
     putSoldiersInFieldFromPlayersHand() {
+        if(this.getState !== gameState.cardsDistributed) throw `Can not put solders in ${this.getState} state. This can happen only in ${gameState.newGame}`
+
         for (let p of this.players) {
             p.territories = p.cards.map(c => ({
                 name: c.name,
@@ -125,12 +141,14 @@ export class Game {
         this.nextGamePhase()
     }
 
-    calculateSoldiersToPut() {
+    private setSoldiersToPut() {
+        this.calculateSoldersTuPutStatusChecker()
+
         let soldiersFromTerritories = 0;
 
         if(this.playerTurn.territories.length > 11) {
-        soldiersFromTerritories = Math.ceil((this.playerTurn.territories.length - 11) / 3);
-        console.log(`Player gets ${soldiersFromTerritories} from ${this.playerTurn.territories.length} territories owned.`)
+            soldiersFromTerritories = Math.ceil((this.playerTurn.territories.length - 11) / 3);
+            console.log(`Player gets ${soldiersFromTerritories} from ${this.playerTurn.territories.length} territories owned.`)
         }
 
         //check if someone owns a continent
@@ -141,13 +159,13 @@ export class Game {
         let r = this.rules.SoldiersFromContinents
         let continent: keyof typeof r
         for (continent in this.rules.SoldiersFromContinents) {
-           playerTerrByContinent[continent] = 0;//{europe: 0, asia: 0,...etc};
-           soldiersFromContinent[continent] = 0; //{europe: 0, asia: 0,...etc};
-       }
+            playerTerrByContinent[continent] = 0;//{europe: 0, asia: 0,...etc};
+            soldiersFromContinent[continent] = 0; //{europe: 0, asia: 0,...etc};
+        }
 
-       for (let t of this.playerTurn.territories) {
-           playerTerrByContinent[t.continent] +=1; //{europe: 3, asia: 2,...etc};
-       }
+        for (let t of this.playerTurn.territories) {
+            playerTerrByContinent[t.continent] +=1; //{europe: 3, asia: 2,...etc};
+        }
 
         for (continent in this.rules.SoldiersFromContinents) {
             //if europe.territories = 7 and player has 7 territories from europe
@@ -164,7 +182,7 @@ export class Game {
     }
 
     putAvailableSoldiers(territory: CountryName, soldersNumber: number) {
-        if(!(this.getState === gameState.newTurn)) throw `Game state must be ${gameState.newTurn}`
+        if(this.getState !== gameState.newTurn) throw `Game state must be ${gameState.newTurn}`
 
         if(soldersNumber > this.soldiersToPut) throw `Can not put more than ${soldersNumber} solders.`
         this.playerTurn.putSoldersInTerritory(territory, soldersNumber)
@@ -173,82 +191,32 @@ export class Game {
         if (this.soldiersToPut === 0) this.nextGamePhase()
     }
 
-    get getInitialSoldersToPut() {
-        return this.initialSoldersToPut
-    }
-
-    /*
-    * If yes, remove from players
-    * */
-
-    isPlayerOutOfGame(playerIndex: number) {
-        if(this.players[playerIndex].territories.length === 0) {
-            let removedPlayer = this.players[playerIndex];
-           this.players.splice(playerIndex, 1);
-
-           return removedPlayer;
-        } else return false;
-    }
-    doesTerritoryBelongToPlayer(terr: CountryName, player: Player = this.playerTurn) {
-        return !!player.territories.find(e => e.name === terr);
-    }
-
-    private canPlayerAttackFromTo(from: CountryName, to: CountryName, player: Player = this.playerTurn) {
-        if (from === to) return {status: AttackFromToCases.YOUR_OWN_TERRITORY,}
-
-        let fromTerritory: Territory | undefined = undefined;
-
-        for (const t of player.territories) {
-            // territory to attack to belong to player and so player can not attack its own territory
-            if(t.name === to) {
-                return {status: AttackFromToCases.YOUR_OWN_TERRITORY,}
-            }
-            // territory to attack from belongs to player
-            if(t.name === from) {
-                fromTerritory = t
-            }
-        }
-
-        if(!fromTerritory) return {status: AttackFromToCases.NO_OWNERSHIP}
-
-        const toTerritory = isInBorder(fromTerritory, to);
-        if(!toTerritory) return {status: AttackFromToCases.NO_BORDER}
-
-        return {status: AttackFromToCases.YES, fromTerritory}
-    }
-
-    canStillPlayerAttackThisTurn(player: Player = this.playerTurn) {
-        for (const territory of player.territories) {
-            if(canPlayerAttackFromThisTerritory(player, territory.name)) return true
-        }
-        return false
-    }
-
-    getMaximumDicesAttackerCanUse(attackingTerritorySolders: number) {
-        if(attackingTerritorySolders <= 1) throw "Can not attack with 1 solder or less."
-        switch (attackingTerritorySolders) {
-            case 2: return 1
-            case 3: return 2
-            default: return 3
-        }
-    }
-
     performAnAttack(from: CountryName, to: CountryName, attackingDices: DiceNumber, attackAgain: boolean, moveAllSoldersAfterAttack: boolean) {
-        if(!(this.getState === gameState.attackFrom || this.getState === gameState.firstAttackFrom)) throw `Game state must be ${gameState.attackFrom} or ${gameState.firstAttackFinished}`
+        this.attackStatusChecker()
 
-        const {status, fromTerritory} = this.canPlayerAttackFromTo(from, to, this.playerTurn)
+        const {status, fromTerritory} = Game.canPlayerAttackFromTo(from, to, this.playerTurn)
 
         // console.log(status, fromTerritory, this.playerTurn)
         if(status !== AttackFromToCases.YES) return status;
         if(!fromTerritory) throw 'fromTerritory must not come undefined'
 
-        let attackingDicesFinal = attackingDices === "max" ? this.getMaximumDicesAttackerCanUse(fromTerritory.soldiers) : attackingDices
+        let attackingDicesFinal = attackingDices === "max" ? Game.getMaximumDicesAttackerCanUse(fromTerritory.soldiers) : attackingDices
 
         if(fromTerritory.soldiers - 1 < attackingDicesFinal) throw `Can not attack with ${attackingDices} dices from a territory with ${fromTerritory.soldiers} solders.`
 
         let attackResult = attack(this, from, to, attackingDicesFinal, attackAgain);
 
+        //make player able to draw a card
+        this.playerHasOccupiedTerritory = attackResult
+
         if(attackResult) {
+            this.removeOutOfGamePlayers()
+
+            if(this.hasCurrentPlayerWon()) {
+                this.winner = this.playerTurn;
+                console.log(this.playerTurn.name + " won!!!");
+            }
+
             if(moveAllSoldersAfterAttack) {
                 this.performAMove(from, to,fromTerritory.soldiers-1)
             } else {
@@ -264,41 +232,10 @@ export class Game {
         return AttackFromToCases.COULD_NOT_INVADE_TERRITORY
     }
 
-    get playerWantToMoveSolders(): boolean {
-        return this._playerWantToMoveSolders;
-    }
-
-    set playerWantToMoveSolders(value: boolean) {
-        switch (this.currentState) {
-            case gameState.firstAttackFrom:
-            case gameState.attackFrom:
-            case gameState.moveSoldiersFrom:
-            case gameState.firstMoveSoldersFrom:
-                this._playerWantToMoveSolders = value;
-                break;
-            default: throw 'Can change state only when move or attack is finished'
-        }
-    }
-
-    private canPlayerMoveFromTo(from: CountryName, to: CountryName, player: Player = this.playerTurn) {
-        if(from === to) return {status: MoveFromToCases.SAME_TERRITORY}
-
-        const fromTerritory = player.getTerritory(from), toTerritory = player.getTerritory(to);
-
-        if(!fromTerritory) return {status: MoveFromToCases.NO_OWNERSHIP}
-        if(!toTerritory) return {status: MoveFromToCases.NO_OWNERSHIP}
-
-        const areTerritoriesConnected = searchInBorders(fromTerritory, to, player.territories, [from])
-
-        if(!areTerritoriesConnected) return {status: MoveFromToCases.NO_BORDER_LINK}
-
-        return {status: MoveFromToCases.YES, fromTerritory, toTerritory}
-    }
-
     performAMove(from: CountryName, to: CountryName, soldersAmount: number) {
         if(soldersAmount<=0) throw `Player wants to move ${soldersAmount} solders. It must be at least 1 solder.`
 
-        const {status, fromTerritory, toTerritory} = this.canPlayerMoveFromTo(from, to, this.playerTurn)
+        const {status, fromTerritory, toTerritory} = Game.canPlayerMoveFromTo(from, to, this.playerTurn)
 
         // console.log(status)
         if(status !== MoveFromToCases.YES) return status;
@@ -326,7 +263,9 @@ export class Game {
     }
 
     private changeStatusAfterAttackAfterSoldersMoved() {
-        const canPlayerAttack = this.canStillPlayerAttackThisTurn()
+        this.attackStatusChecker()
+
+        const canPlayerAttack = Game.canStillPlayerAttackThisTurn(this.playerTurn)
         this.playerWantToMoveSolders = false
         console.log("game.canStillPlayerAttackThisTurn()", canPlayerAttack)
 
@@ -343,6 +282,33 @@ export class Game {
                 throw "When an attack happens game phase must be firstAttackFrom or attackFrom"
         }
     }
+
+    private set playerHasOccupiedTerritory(occupation: boolean) {
+        this.attackStatusChecker()
+        this.playerTurn.hasOccupiedTerritory = occupation
+    }
+
+    private shuffleCards() {
+        if(!(this.getState === gameState.newGame || this.getState === gameState.cardsDistributed || this.getState === gameState.turnFinished))
+            throw `Game state must be ${gameState.newGame} or ${gameState.cardsDistributed} or ${gameState.turnFinished}`
+        shuffleArray(this.cards)
+    }
+
+    private removeOutOfGamePlayers() {
+        this.players = this.players.filter(p => p.territories.length > 0)
+    }
+
+    // utils status checkers for actions
+
+    private attackStatusChecker() {
+        if(!(this.getState === gameState.attackFrom || this.getState === gameState.firstAttackFrom)) throw `Game state must be ${gameState.attackFrom} or ${gameState.firstAttackFinished}`
+    }
+
+    private calculateSoldersTuPutStatusChecker() {
+        if(!(this.getState === gameState.newTurn || this.getState === gameState.newGame)) throw `Game state must be ${gameState.newTurn} or ${gameState.newGame}`
+    }
+
+    // ==== status changing ====
 
     get getState() {
         return this.currentState
@@ -463,7 +429,7 @@ export class Game {
         }
     }
 
-     nextGamePhase() {
+    nextGamePhase() {
         this.changeGameStatus("next")
     }
 
@@ -489,7 +455,7 @@ export class Game {
 
         if(this.playerTurn.hasOccupiedTerritory) {
             this.currentPLayerDrawOneCard();
-            this.playerTurn.hasOccupiedTerritory = false; //reset
+            this.playerHasOccupiedTerritory = false; //reset
         }
 
         let position = this.players.indexOf(this.playerTurn);
@@ -502,9 +468,80 @@ export class Game {
 
         this.currentState = gameState.newTurn;
         this.playerTurn.isPlaying = false;
-        this.calculateSoldiersToPut();
+        this.setSoldiersToPut();
     }
 
+
+    // utils. Can be accessed only via actions
+
+    private hasCurrentPlayerWon() {
+        if(this.settings.TerritoriesToWin.value === 'all') {
+            let Won = true;
+
+            for (let pl of this.players) {
+                if(pl === this.playerTurn) continue;
+                if(pl.territories.length > 0) Won = false;
+            }
+
+            return Won;
+        } else return this.playerTurn.territories.length >= this.settings.TerritoriesToWin.value;
+    }
+
+    // pure functions
+    private static canPlayerMoveFromTo(from: CountryName, to: CountryName, player: Player) {
+        if(from === to) return {status: MoveFromToCases.SAME_TERRITORY}
+
+        const fromTerritory = player.getTerritory(from), toTerritory = player.getTerritory(to);
+
+        if(!fromTerritory) return {status: MoveFromToCases.NO_OWNERSHIP}
+        if(!toTerritory) return {status: MoveFromToCases.NO_OWNERSHIP}
+
+        const areTerritoriesConnected = searchInBorders(fromTerritory, to, player.territories, [from])
+
+        if(!areTerritoriesConnected) return {status: MoveFromToCases.NO_BORDER_LINK}
+
+        return {status: MoveFromToCases.YES, fromTerritory, toTerritory}
+    }
+
+    private static canPlayerAttackFromTo(from: CountryName, to: CountryName, player: Player) {
+        if (from === to) return {status: AttackFromToCases.YOUR_OWN_TERRITORY,}
+
+        let fromTerritory: Territory | undefined = undefined;
+
+        for (const t of player.territories) {
+            // territory to attack to belong to player and so player can not attack its own territory
+            if(t.name === to) {
+                return {status: AttackFromToCases.YOUR_OWN_TERRITORY,}
+            }
+            // territory to attack from belongs to player
+            if(t.name === from) {
+                fromTerritory = t
+            }
+        }
+
+        if(!fromTerritory) return {status: AttackFromToCases.NO_OWNERSHIP}
+
+        const toTerritory = isInBorder(fromTerritory, to);
+        if(!toTerritory) return {status: AttackFromToCases.NO_BORDER}
+
+        return {status: AttackFromToCases.YES, fromTerritory}
+    }
+
+    private static canStillPlayerAttackThisTurn(player: Player) {
+        for (const territory of player.territories) {
+            if(canPlayerAttackFromThisTerritory(player, territory.name)) return true
+        }
+        return false
+    }
+
+    static getMaximumDicesAttackerCanUse(attackingTerritorySolders: number) {
+        if(attackingTerritorySolders <= 1) throw "Can not attack with 1 solder or less."
+        switch (attackingTerritorySolders) {
+            case 2: return 1
+            case 3: return 2
+            default: return 3
+        }
+    }
 
 }
 

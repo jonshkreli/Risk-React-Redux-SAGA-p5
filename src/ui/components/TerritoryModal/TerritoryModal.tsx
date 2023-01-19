@@ -119,7 +119,7 @@ export const TerritoryModal = () => {
         closeModal()
     }
 
-    const territoryBelongToPlayer = !!clickedTerritoryFrom && game.doesTerritoryBelongToPlayer(clickedTerritoryFrom, playerTurn)
+    const territoryBelongToPlayer = !!clickedTerritoryFrom && !!game.playerTurn.getTerritory(clickedTerritoryFrom)
     const playerTerritory = game.playerTurn.getTerritory(clickedTerritoryFrom)
 
     return <Popover open={isPopoverOpen} anchorPosition={{left, top}} anchorReference='anchorPosition'>

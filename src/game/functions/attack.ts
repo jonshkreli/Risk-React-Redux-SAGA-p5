@@ -16,9 +16,9 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
 
     const defendingNumber = toTerritory.soldiers;
 
-    console.log(fromTerritory.soldiers +" "+ defendingNumber)
+    // console.log(fromTerritory.soldiers +" "+ defendingNumber)
 
-    let attackingNumber = fromTerritory.soldiers - 1;
+    const attackingNumber = fromTerritory.soldiers - 1;
 
     let result;
     if(numberOfDices === 3) {
@@ -35,31 +35,18 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
     toTerritory.soldiers = defendingSoldersLeft
 
 
-    if(attackingSoldersLeft === 0) { //attacking finished in this part no more soldiers to attack
-        console.log("attacking finished from this state no more soldiers to attack");
-        attackingPlayer.hasOccupiedTerritory = false;
-        return false
-    } else if(defendingSoldersLeft === 0) { //occupy territory
+    if (defendingSoldersLeft === 0) { //occupy territory
         attackedPLayer.removeTerritory(to)
         attackingPlayer.addTerritory(toTerritory)
 
-        //make player able to draw a card
-        attackingPlayer.hasOccupiedTerritory = true;
-
-        let playerWins = game.hasCurrentPlayerWon();
-
-        if(playerWins) {
-            game.winner = attackingPlayer;
-            console.log(attackingPlayer.name + " won!!!");
+        //check if attacked player is out of game
+        if (attackedPLayer.isPlayerOutOfGame()) {
+            console.log('player ' + attackedPLayer.name + " is out of game.")
         }
 
-        //check if attacked player is out of game
-       if(attackedPLayer.isPlayerOutOfGame()) {
-           console.log('player '+ attackedPLayer.name + " is out of game.")
-       }
-
-       return true
+        return true
     }
+
     // both territories have still solders
     return false
 

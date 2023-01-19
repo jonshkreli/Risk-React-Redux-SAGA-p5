@@ -9,7 +9,7 @@ import {PlayerColors} from "../constants/settingsConfig";
 export class Player {
     name: string;
     color: keyof typeof PlayerColors | undefined = undefined;
-    hasOccupiedTerritory: boolean = false;
+    private _hasOccupiedTerritory: boolean = false;
     game: Game | undefined = undefined;
     isPlaying = false;
     territories: Territory[];
@@ -158,6 +158,15 @@ export class Player {
     getTerritory(territory: CountryName) {
        return this.territories.find(t => t.name === territory)
     }
+
+    get hasOccupiedTerritory(): boolean {
+        return this._hasOccupiedTerritory;
+    }
+
+    set hasOccupiedTerritory(value: boolean) {
+        this._hasOccupiedTerritory = value;
+    }
+
 
 }
 
