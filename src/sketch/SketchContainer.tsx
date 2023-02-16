@@ -18,7 +18,7 @@ export const SketchContainer: React.FC = () => {
     //See annotations in JS for more information
     const setup = (p5: p5Types, canvasParentRef: Element) => {
 
-        p5.createCanvas(1280, 720).parent(canvasParentRef);
+        p5.createCanvas(1200, 711).parent(canvasParentRef);
         p5.frameRate(20);
         p5.loadImage('risk2.jpg', img => {
             setMap(img)

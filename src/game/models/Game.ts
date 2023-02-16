@@ -92,6 +92,7 @@ export class Game implements GamePhases, GameActions {
             case gameState.attackFrom:
             case gameState.moveSoldiersFrom:
             case gameState.firstMoveSoldersFrom:
+            case gameState.turnFinished:
                 this._playerWantToMoveSolders = value;
                 break;
             default: throw 'Can change state only when move or attack is finished'
@@ -487,9 +488,8 @@ export class Game implements GamePhases, GameActions {
     }
     nextPlayerTurn() {
         if(this.getState !== gameState.turnFinished) throw "Can not change turn when turn is not finished."
-        console.log(this.currentState)
-        // this.nextGamePhase()
-        console.log(this.currentState)
+
+        this.playerWantToMoveSolders = false;
 
         if(this.playerTurn.hasOccupiedTerritory) {
             this.currentPLayerDrawOneCard();

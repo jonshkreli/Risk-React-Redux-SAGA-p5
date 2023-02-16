@@ -29,6 +29,8 @@ export function attack(game: Game, from: CountryName, to: CountryName, numberOfD
          result = oneDice(attackingNumber, defendingNumber, attackAgain);
     } else throw 'number of dices is '+ numberOfDices;
 
+    console.log(result)
+
     const [attackingSoldersLeft, defendingSoldersLeft] = result
 
     fromTerritory.soldiers = attackingSoldersLeft + 1 // attacking solders + 1 solder that stays in the ground
