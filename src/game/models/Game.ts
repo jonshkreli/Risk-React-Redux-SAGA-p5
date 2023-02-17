@@ -9,6 +9,8 @@ import {canPlayerAttackFromThisTerritory, isInBorder} from "../functions/utils";
 import {GamePhases} from "./GamePhases";
 import {GameActions} from "./GameActions";
 import {PlayerDetails} from "./PlayerDetails";
+import {AttackSettings, FromTo} from "./HelperTypes";
+import {Message} from "./Message";
 
 export class Game implements GamePhases, GameActions {
     private _players: Player[] = [];
@@ -227,7 +229,10 @@ export class Game implements GamePhases, GameActions {
         if (this.soldiersToPut === 0) this.nextGamePhase()
     }
 
-    performAnAttack(from: CountryName, to: CountryName, attackingDices: DiceNumber, attackAgain: boolean, moveAllSoldersAfterAttack: boolean) {
+    performAnAttack(
+        {from, to}: FromTo,
+        {attackingDices, attackAgain, moveAllSoldersAfterAttack}: AttackSettings,
+        messages: Message[]) {
         this.attackStatusChecker()
 
         const {status, fromTerritory} = Game.canPlayerAttackFromTo(from, to, this.playerTurn)
@@ -240,7 +245,7 @@ export class Game implements GamePhases, GameActions {
 
         if(fromTerritory.soldiers - 1 < attackingDicesFinal) throw `Can not attack with ${attackingDices} dices from a territory with ${fromTerritory.soldiers} solders.`
 
-        let attackResult = attack(this, from, to, attackingDicesFinal, attackAgain);
+        let attackResult = attack(this, {from, to}, {attackingDices: attackingDicesFinal, attackAgain}, messages);
 
         //make player able to draw a card
         this.playerHasOccupiedTerritory = attackResult
@@ -248,27 +253,20 @@ export class Game implements GamePhases, GameActions {
         if(attackResult) {
             this.removeOutOfGamePlayers()
 
-            if(this.hasCurrentPlayerWon()) {
-                this.winner = this.playerTurn;
-                console.log(this.playerTurn.name + " won!!!");
-            }
-
             if(moveAllSoldersAfterAttack) {
-                this.performAMove(from, to,fromTerritory.soldiers-1)
+                this.performAMove({from, to},fromTerritory.soldiers-1, messages)
             } else {
                 this.playerWantToMoveSolders = true
             }
             return AttackFromToCases.YES
         } else {
             this.changeStatusAfterAttackAfterSoldersMoved()
+            return AttackFromToCases.COULD_NOT_INVADE_TERRITORY
         }
 
-        // console.log(attackResult, this.playerWantToMoveSolders)
-
-        return AttackFromToCases.COULD_NOT_INVADE_TERRITORY
     }
 
-    performAMove(from: CountryName, to: CountryName, soldersAmount: number) {
+    performAMove({from, to}: FromTo, soldersAmount: number, messages: Message[]) {
         if(soldersAmount<=0) throw `Player wants to move ${soldersAmount} solders. It must be at least 1 solder.`
 
         const {status, fromTerritory, toTerritory} = Game.canPlayerMoveFromTo(from, to, this.playerTurn)

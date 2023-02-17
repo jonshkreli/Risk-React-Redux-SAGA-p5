@@ -34,12 +34,12 @@ export const SettingsContainer = () => {
 
         dispatch(setSettings(modifiedSettings))
     }
-    const onDoOrDieAttackChange = (c: ChangeEvent<HTMLInputElement>) => {
+    const ContinuousAndMoveAll = (c: ChangeEvent<HTMLInputElement>) => {
         const modifiedSettings = {...settings}
 
         const checked = c.target.checked
 
-        modifiedSettings.DoOrDieAttack.value = checked;
+        modifiedSettings.ContinuousAndMoveAll.value = checked;
         modifiedSettings.moveAllSoldersAfterAttack.value = checked;
         modifiedSettings.continueAttack.value = checked;
         modifiedSettings.dicesNumber.value = "max";
@@ -50,7 +50,7 @@ export const SettingsContainer = () => {
     useEffect(() => {
         const modifiedSettings = {...settings}
 
-        modifiedSettings.DoOrDieAttack.value = settings.continueAttack.value && settings.moveAllSoldersAfterAttack.value && settings.dicesNumber.value === "max";
+        modifiedSettings.ContinuousAndMoveAll.value = settings.continueAttack.value && settings.moveAllSoldersAfterAttack.value && settings.dicesNumber.value === "max";
 
         dispatch(setSettings(modifiedSettings))
     }, [settings.continueAttack.value, settings.moveAllSoldersAfterAttack.value, settings.dicesNumber.value])
@@ -78,8 +78,8 @@ export const SettingsContainer = () => {
             <Checkbox onChange={onMoveSoldersChange} checked={settings.moveAllSoldersAfterAttack.value}/>
         </div>
         <div>
-            <span>Do or die attack and continue?</span>
-            <Checkbox onChange={onDoOrDieAttackChange} checked={settings.DoOrDieAttack.value}/>
+            <span>Continuous and Move all solders?</span>
+            <Checkbox onChange={ContinuousAndMoveAll} checked={settings.ContinuousAndMoveAll.value}/>
         </div>
     </div>
 }

@@ -1,11 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import {Button, DialogActions, DialogContent, fabClasses, Input, Popover} from "@mui/material";
+import {Button, DialogActions, DialogContent, Popover} from "@mui/material";
 import {useDispatch, useSelector} from "react-redux";
 import {DefaultReducerStateType} from "../../../redux/reducers";
 import {clickTerritory, setGameObject} from "../../../redux/actions";
 import {Game, gameState} from "../../../game/models/Game";
 import {CountryName} from "../../../game/constants/CountryName";
-import {canNotAttackOwnTerritoryMessage, territoryDoesNotBelongToPlayerMessage} from "../helperMessages";
+import {territoryDoesNotBelongToPlayerMessage} from "../helperMessages";
 import {Territory} from "../../../game/constants/Territory";
 import {Player} from "../../../game/models/Player";
 import {canPlayerAttackFromThisTerritory} from "../../../game/functions/utils";

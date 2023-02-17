@@ -4,7 +4,7 @@ export interface SettingsInterface {
     fastGame: {
         value: boolean,
     },
-    DoOrDieAttack: {
+    ContinuousAndMoveAll: {
         value: boolean,
     },
     TerritoriesToWin: {
@@ -33,7 +33,7 @@ export const initialSettings: SettingsInterface = {
     fastGame: {
         value: true,
     },
-    DoOrDieAttack: {
+    ContinuousAndMoveAll: {
         value: true,
     },
     TerritoriesToWin: {

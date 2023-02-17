@@ -6,6 +6,7 @@ import {GameActions} from "../actions/gameActions";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
 import {PlayerDetails} from "../../game/models/PlayerDetails";
+import {Message} from "../../game/models/Message";
 
 export interface DefaultReducerStateType {
   game: Game | undefined,
@@ -18,6 +19,7 @@ export interface DefaultReducerStateType {
   modalCoordinates: Point,
   solders: number,
   message: string,
+  messages: Message[]
 }
 
 const defaultReducerState: DefaultReducerStateType = {
@@ -30,13 +32,14 @@ const defaultReducerState: DefaultReducerStateType = {
   clickedTerritoryTo: '',
   modalCoordinates: {x: 0, y: 0},
   solders: 0,
-  message: ''
+  message: '',
+  messages: []
 }
 
 const reducer = (state = defaultReducerState, action: GameActions): DefaultReducerStateType => {
   console.log('reducer',state, action)
 
-  const {game, clickedTerritoryFrom, clickedTerritoryTo} = state
+  const {game, clickedTerritoryFrom, clickedTerritoryTo, messages} = state
 
   switch (action.type) {
     // case ReducerActionType.SET_RULES:
@@ -88,17 +91,21 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
           const attackingDices = state.settings.dicesNumber.value
           const attackAgain = state.settings.continueAttack.value
           const moveAllSoldersAfterAttack = state.settings.moveAllSoldersAfterAttack.value
-          const result = game.performAnAttack(clickedTerritoryFrom, clickedTerritoryTo, attackingDices, attackAgain, moveAllSoldersAfterAttack)
+          const result = game.performAnAttack(
+              {from: clickedTerritoryFrom, to: clickedTerritoryTo},
+              {attackingDices, attackAgain, moveAllSoldersAfterAttack},
+              messages
+          )
           let message = result.toString()
 
           switch (result) {
             case AttackFromToCases.YES:
               message = 'Attack was performed successfully'
-              return { ...state, game, message, modalCoordinates: {x: 0, y: 0}}
+              return { ...state, game, message, modalCoordinates: {x: 0, y: 0}, messages}
             case AttackFromToCases.COULD_NOT_INVADE_TERRITORY:
-              return { ...state, game, message, modalCoordinates: {x: 0, y: 0}, clickedTerritoryFrom: '', clickedTerritoryTo: ''}
+              return { ...state, game, message, modalCoordinates: {x: 0, y: 0}, clickedTerritoryFrom: '', clickedTerritoryTo: '', messages}
             default:
-              return { ...state, game, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message}
+              return { ...state, game, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message, messages}
           }
         }
         return state
@@ -110,13 +117,13 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
     case ReducerActionType.PLAYER_WANT_TO_MOVE_SOLDERS_TO:
       //perform a move
       if(game && clickedTerritoryFrom && clickedTerritoryTo) {
-        console.log('reducer perform attack')
-        let message: string = game.performAMove(clickedTerritoryFrom, clickedTerritoryTo, action.payload.solders)
+        console.log('reducer performAMove')
+        let message: string = game.performAMove({from: clickedTerritoryFrom, to: clickedTerritoryTo}, action.payload.solders, messages)
         if(message !== MoveFromToCases.YES) {
-          return { ...state, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message}
+          return { ...state, modalCoordinates: {x: 0, y: 0}, clickedTerritoryTo: '', message, messages}
         } else {
           message = `${action.payload.solders} solders moved from ${clickedTerritoryFrom} to ${clickedTerritoryTo}`
-          return { ...state, game, modalCoordinates: {x: 0, y: 0}, message, clickedTerritoryFrom: '', clickedTerritoryTo: '', }
+          return { ...state, game, modalCoordinates: {x: 0, y: 0}, message, clickedTerritoryFrom: '', clickedTerritoryTo: '', messages}
         }
       }
       return state
