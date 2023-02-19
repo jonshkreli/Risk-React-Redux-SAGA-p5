@@ -1,4 +1,5 @@
 import {ContinentName} from "../constants/continents";
+import {MessageType} from "../models/Message";
 
 export type ContinentsWithNumber = { [K in ContinentName]: number }
 

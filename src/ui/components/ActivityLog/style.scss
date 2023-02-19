@@ -1,0 +1,35 @@
+.ActivityLog {
+  font-size: 1.3rem;
+  background: #424040;
+  .Selectors-container {
+    padding: 5px;
+    .Selectors-title {
+      color: antiquewhite;
+    }
+    .Selectors-checkboxes {
+
+    }
+  }
+
+  .messages-container {
+    padding: 5px;
+    overflow-y: auto;
+    max-height: 200px;
+
+    .message {
+
+      &.INFO {
+        color: whitesmoke;
+      }
+      &.SUCCESS {
+        color: lawngreen;
+      }
+      &.WARNING {
+        color: yellow;
+      }
+      &.ERROR {
+        color: indianred;
+      }
+    }
+  }
+}
