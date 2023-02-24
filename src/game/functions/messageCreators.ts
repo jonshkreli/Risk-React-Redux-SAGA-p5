@@ -1,5 +1,5 @@
 import {Message} from "../models/Message";
-import {MessageOrigins} from "../models/MessageOrigins";
+import {MessageOriginType} from "../models/MessageOriginType";
 import {Player} from "../models/Player";
 import {CountryName} from "../constants/CountryName";
 import {DiceNumber} from "../constants/settingsConfig";
