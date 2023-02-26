@@ -5,7 +5,9 @@ export const MESSAGE_ORIGINS = [
         'SOLDERS LEFT',
         'TERRITORY INVADED',
         'TERRITORY NOT INVADED',
+        'AFTER ATTACK',
         'PLAYER OUT OF GAME',
+        'MOVE SOLDERS',
 
     ] as const
 export type MessageOriginType = typeof MESSAGE_ORIGINS[number];

@@ -41,3 +41,11 @@ export const startingAttack = (attackingPlayer: Player, invadedTerritory: Countr
         origin: ['ATTACK', "ATTACK WILL START",]
     }
 }
+
+export const playerMovedSolders = (attackingPlayer: Player, from: CountryName, to: CountryName, soldersAmount: number): Message => {
+    return {
+        type: "SUCCESS",
+        message: `${attackingPlayer.name} moved ${soldersAmount} from ${from} to ${to}`,
+        origin: ["MOVE SOLDERS"]
+    }
+}
