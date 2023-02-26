@@ -9,6 +9,7 @@ import {GameStatusView} from "./components/GameStatusView";
 import "./style.css"
 import {SideBar} from "./containers/SideBar";
 import {PlayerDetails} from "../game/models/PlayerDetails";
+import {ViewCardsModal} from "./components/ViewCardsModal/ViewCardsModal";
 
 if(window.c === undefined)
 window.c = 0
@@ -43,6 +44,7 @@ if(window.c < 10) {
             </div>
             <PlayersTable/>
             <TerritoryModal/>
+            <ViewCardsModal/>
         </div>
     );
 };

@@ -21,6 +21,10 @@ export interface SettingsInterface {
     },
     moveAllSoldersAfterAttack: {
         value: boolean
+    },
+    openCards: {
+        amount: '3+' | '3'
+        stars: 'as stated in card' | '1 per card'
     }
 }
 
@@ -41,6 +45,10 @@ export const initialSettings: SettingsInterface = {
     },
     MAXPlayerNumber: {
         value: 6
+    },
+    openCards: {
+        amount: "3+",
+        stars: "as stated in card"
     }
 };
 

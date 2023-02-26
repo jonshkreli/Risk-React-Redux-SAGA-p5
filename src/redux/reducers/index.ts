@@ -19,7 +19,8 @@ export interface DefaultReducerStateType {
   modalCoordinates: Point,
   solders: number,
   message: string,
-  messages: Message[]
+  messages: Message[],
+  cardsModalOpen: boolean,
 }
 
 const defaultReducerState: DefaultReducerStateType = {
@@ -33,7 +34,8 @@ const defaultReducerState: DefaultReducerStateType = {
   modalCoordinates: {x: 0, y: 0},
   solders: 0,
   message: '',
-  messages: []
+  messages: [],
+  cardsModalOpen: false,
 }
 
 const reducer = (state = defaultReducerState, action: GameActions): DefaultReducerStateType => {
@@ -134,6 +136,8 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
       return { ...state, game, modalCoordinates: {x: 0, y: 0}, message: 'Action was canceled', clickedTerritoryFrom: '', clickedTerritoryTo: '', }
     case ReducerActionType.SET_SETTINGS:
       return {...state, settings: action.payload.settings}
+    case ReducerActionType.PLAYER_VIEW_CARDS:
+      return {...state, cardsModalOpen: !state.cardsModalOpen}
     default:
       return state;
   }

@@ -1,6 +1,6 @@
 import React from "react";
 import {Button} from "@mui/material";
-import {setGameObject} from "../../redux/actions";
+import {setGameObject, toggleCardsModal} from "../../redux/actions";
 import {useDispatch, useSelector} from "react-redux";
 import {DefaultReducerStateType} from "../../redux/reducers";
 import {Game} from "../../game/models/Game";
@@ -25,8 +25,13 @@ export const ButtonsContainer = () => {
         }
     }
 
+    const onViewCardsClick = () => {
+      dispatch(toggleCardsModal())
+    }
+
     return <div className={'ButtonsContainer'}>
         <Button onClick={onStartGameClick}>Start game</Button>
+        <Button onClick={onViewCardsClick}>View Cards</Button>
         <FinishTurnButton/>
         <CancelButton/>
     </div>

@@ -13,7 +13,7 @@ import {
   SetGameObjectAction,
   CreatePlayersAction,
   RemoveLastPlayerAction,
-  SetPlayerAction, PlayerWantsToAttackAction, MoveSoldersAction, SetSettingsAction, CancelAction
+  SetPlayerAction, PlayerWantsToAttackAction, MoveSoldersAction, SetSettingsAction, CancelAction, ToggleViewCardsAction
 } from "./gameActions";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
@@ -73,5 +73,9 @@ export const performAMove = (solders: number): MoveSoldersAction => ({
 
 export const cancelAction = (): CancelAction => ({
   type: ReducerActionType.CANCEL_ACTION,
+});
+
+export const toggleCardsModal = (): ToggleViewCardsAction => ({
+  type: ReducerActionType.PLAYER_VIEW_CARDS,
 });
 

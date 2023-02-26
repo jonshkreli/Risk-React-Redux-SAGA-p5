@@ -8,6 +8,8 @@ export const MESSAGE_ORIGINS = [
         'AFTER ATTACK',
         'PLAYER OUT OF GAME',
         'MOVE SOLDERS',
+        'CARDS',
+        'SOLDERS FROM CARDS',
 
     ] as const
 export type MessageOriginType = typeof MESSAGE_ORIGINS[number];

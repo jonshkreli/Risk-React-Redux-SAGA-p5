@@ -342,6 +342,38 @@ export class Game implements GamePhases, GameActions {
         this.players = this.players.filter(p => p.territories.length > 0)
     }
 
+    canPlayerOpenCards() {
+        return this.playerTurn.cards.length >= 3
+    }
+
+    private getSoldersFromCards(cards: Card[],messages: Message[]) {
+        if(!this.canPlayerOpenCards()) {
+            messages.push({message: `${this.playerTurn.name} have only ${this.playerTurn.cards}, minimum is 3`, origin: ["CARDS", "SOLDERS FROM CARDS"], type: "ERROR"})
+            throw `${this.playerTurn.name} have only ${this.playerTurn.cards}, minimum is 3`
+        }
+
+        if(this.settings.openCards.amount === "3" && cards.length > 3) {
+            messages.push({message: `Can open exactly 3 cards`, origin: ["CARDS", "SOLDERS FROM CARDS"], type: "ERROR"})
+            throw `Can open exactly 3 cards`
+        }
+
+        let solders = 0
+
+        for (const card of cards) {
+            if(this.settings.openCards.stars === "as stated in card") solders += card.stars
+            else solders += 1
+        }
+
+        messages.push({message: `${this.playerTurn.name} got ${solders} from cards`, origin: ["CARDS", "SOLDERS FROM CARDS"], type: "INFO"})
+        return solders
+    }
+
+    playerOpenCards(cards: Card[],messages: Message[]) {
+        if(this.getState !== gameState.newTurn) throw `Can open cards only in ${gameState.newTurn}`
+
+        this.soldiersToPut = this.soldiersToPut + this.getSoldersFromCards(cards, messages)
+    }
+
     // utils status checkers for actions
 
     private attackStatusChecker() {

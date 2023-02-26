@@ -10,8 +10,9 @@ export type GameActions =
     SetGameObjectAction |
     CreatePlayersAction | AddPlayerAction | RemoveLastPlayerAction |
     SetRulesAction | SetSettingsAction |
-    ClickTerritoryAction |
+    ClickTerritoryAction | ToggleViewCardsAction |
     PlayerWantsToAttackAction | PlayerWantsToMoveAction | MoveSoldersAction | CancelAction
+
 
 export interface SetGameObjectAction {
     type: ReducerActionType.CREATE_GAME_OBJECT,
@@ -67,4 +68,7 @@ export interface MoveSoldersAction {
 
 export interface CancelAction {
     type: ReducerActionType.CANCEL_ACTION,
+}
+export interface ToggleViewCardsAction {
+    type: ReducerActionType.PLAYER_VIEW_CARDS,
 }
