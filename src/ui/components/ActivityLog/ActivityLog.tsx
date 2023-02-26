@@ -1,16 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {useSelector} from "react-redux";
 import {DefaultReducerStateType} from "../../../redux/reducers";
 import './style.scss'
 import {MESSAGE_ORIGINS, MessageOriginType} from "../../../game/models/MessageOriginType";
-import {
-    Accordion,
-    AccordionDetails,
-    AccordionSummary,
-    Checkbox,
-    Experimental_CssVarsProvider, FormControlLabel,
-    Typography
-} from "@mui/material";
+import {Accordion, AccordionDetails, AccordionSummary, Checkbox, FormControlLabel} from "@mui/material";
 import {MessageType} from "../../../game/models/Message";
 
 export const ActivityLog = () => {
@@ -40,6 +33,21 @@ export const ActivityLog = () => {
         checkedObject[messageType] = checked
         setCheckedTypes(checkedObject)
     };
+
+    const filteredMessages = React.useMemo(() => {
+        return messages.filter(({type, origin}) => {
+
+            if(!checkedTypes[type]) return false
+
+            // check origin
+            for (let i = origin.length - 1; i >= 0; i--){
+                const originSegment = origin[i];
+                if (!checkedOrigins[originSegment]) return false
+            }
+
+            return true
+        })
+    }, [checkedOrigins, checkedTypes, messages.length])
 
     return <div className='ActivityLog'>
             <Accordion className='Selectors-container'>
@@ -78,7 +86,7 @@ export const ActivityLog = () => {
                 </AccordionDetails>
             </Accordion>
         <div className='messages-container'>
-            {messages.map(({type, message, origin}) => (
+            {filteredMessages.map(({type, message, origin}) => (
                 <div className={`message ${type}`}>
                     {message}
                 </div>

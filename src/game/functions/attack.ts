@@ -104,7 +104,7 @@ function twoDice(attackingNumber: number, defendingNumber: number, attackAgain =
         let defenderDice = getRandomDice();
 
         // TODO test message
-        messages.push({type: "INFO", message: `attacker biggest dice: ${attackerDiceBig} VS defender dice: ${defenderDice}`, origin: ['attacker 2 dices, defender 1 dice']})
+        messages.push({type: "INFO", message: `attacker biggest dice: ${attackerDiceBig} VS defender dice: ${defenderDice}`, origin: ["ATTACK"]})
 
         if(attackerDiceBig > defenderDice) defendingNumber--; else attackingNumber--;
     }

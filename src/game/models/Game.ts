@@ -1,6 +1,6 @@
 import {Player} from "./Player";
 import {Card, cards} from "../constants/cards";
-import {DiceNumber, PlayerColors, rules, Rules, SettingsInterface} from "../constants/settingsConfig";
+import {PlayerColors, rules, Rules, SettingsInterface} from "../constants/settingsConfig";
 import {generateEmptyContinentsWithNumber, shuffleArray} from "../functions/smallUtils";
 import {CountryName} from "../constants/CountryName";
 import {attack, searchInBorders} from "../functions/attack";
@@ -11,6 +11,7 @@ import {GameActions} from "./GameActions";
 import {PlayerDetails} from "./PlayerDetails";
 import {AttackSettings, FromTo} from "./HelperTypes";
 import {Message} from "./Message";
+import {playerMovedSolders} from "../functions/messageCreators";
 
 export class Game implements GamePhases, GameActions {
     private _players: Player[] = [];
@@ -144,7 +145,7 @@ export class Game implements GamePhases, GameActions {
 
             th.players[playerTurnToTakeCard].cards.push(lastCard);
 
-            //if player turn goes to the last element of players array restart it to 0
+            //if player turn goes to the last element of players arrays restart it to 0
             if(playerTurnToTakeCard === th.players.length -1 ) {
                 playerTurnToTakeCard = 0;
             } else { //just increase it
@@ -260,30 +261,38 @@ export class Game implements GamePhases, GameActions {
             }
             return AttackFromToCases.YES
         } else {
-            this.changeStatusAfterAttackAfterSoldersMoved()
+            this.changeStatusAfterAttackAfterSoldersMoved(messages)
             return AttackFromToCases.COULD_NOT_INVADE_TERRITORY
         }
 
     }
 
     performAMove({from, to}: FromTo, soldersAmount: number, messages: Message[]) {
-        if(soldersAmount<=0) throw `Player wants to move ${soldersAmount} solders. It must be at least 1 solder.`
+        if(soldersAmount<=0) {
+            messages.push({message: `Player wants to move ${soldersAmount} solders. It must be at least 1 solder.`, type: "ERROR", origin: ["MOVE SOLDERS"]})
+            throw `Player wants to move ${soldersAmount} solders. It must be at least 1 solder.`
+        }
 
         const {status, fromTerritory, toTerritory} = Game.canPlayerMoveFromTo(from, to, this.playerTurn)
 
         // console.log(status)
-        if(status !== MoveFromToCases.YES) return status;
+        if(status !== MoveFromToCases.YES) {
+            messages.push({message: status, type: "WARNING", origin: ["MOVE SOLDERS"]})
+            return status;
+        }
         if(!fromTerritory || !toTerritory) throw 'fromTerritory and toTerritory must not come undefined'
 
         fromTerritory.soldiers -= soldersAmount
         toTerritory.soldiers += soldersAmount
 
         // console.log(soldersAmount + " moving to " + to);
+        messages.push(playerMovedSolders(this.playerTurn, from, to, soldersAmount))
+
 
         switch (this.getState) {
             case gameState.firstAttackFrom:
             case gameState.attackFrom:
-                this.changeStatusAfterAttackAfterSoldersMoved()
+                this.changeStatusAfterAttackAfterSoldersMoved(messages)
                 break;
             case gameState.moveSoldiersFrom:
             case gameState.firstMoveSoldersFrom:
@@ -296,12 +305,13 @@ export class Game implements GamePhases, GameActions {
         return status
     }
 
-    private changeStatusAfterAttackAfterSoldersMoved() {
+    private changeStatusAfterAttackAfterSoldersMoved(messages: Message[]) {
         this.attackStatusChecker()
 
         const canPlayerAttack = Game.canStillPlayerAttackThisTurn(this.playerTurn)
         this.playerWantToMoveSolders = false
         console.log("game.canStillPlayerAttackThisTurn()", canPlayerAttack)
+        messages.push({message: `${this.playerTurn.name} can ${canPlayerAttack? 'continue attacking' : 'not attack anymore'} this turn`, origin: ["ATTACK", "AFTER ATTACK"], type: "INFO"})
 
         switch (this.getState) {
             case gameState.firstAttackFrom:
