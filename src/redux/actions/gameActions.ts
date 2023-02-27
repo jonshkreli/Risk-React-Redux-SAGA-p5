@@ -5,13 +5,15 @@ import {Rules, SettingsInterface} from "../../game/constants/settingsConfig";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
 import {PlayerDetails} from "../../game/models/PlayerDetails";
+import {Card} from "../../game/constants/cards";
 
 export type GameActions =
     SetGameObjectAction |
     CreatePlayersAction | AddPlayerAction | RemoveLastPlayerAction |
     SetRulesAction | SetSettingsAction |
     ClickTerritoryAction | ToggleViewCardsAction |
-    PlayerWantsToAttackAction | PlayerWantsToMoveAction | MoveSoldersAction | CancelAction
+    PlayerWantsToAttackAction | PlayerWantsToMoveAction | MoveSoldersAction | CancelAction |
+    PlayerOpenCardsAction
 
 
 export interface SetGameObjectAction {
@@ -71,4 +73,9 @@ export interface CancelAction {
 }
 export interface ToggleViewCardsAction {
     type: ReducerActionType.PLAYER_VIEW_CARDS,
+}
+export interface PlayerOpenCardsAction {
+    type: ReducerActionType.PLAYER_OPEN_CARDS,
+    payload: { cards: Card[] }
+
 }

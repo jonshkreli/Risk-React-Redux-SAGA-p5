@@ -138,6 +138,9 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
       return {...state, settings: action.payload.settings}
     case ReducerActionType.PLAYER_VIEW_CARDS:
       return {...state, cardsModalOpen: !state.cardsModalOpen}
+    case ReducerActionType.PLAYER_OPEN_CARDS:
+      game?.playerOpenCards(action.payload.cards, messages)
+      return {...state, cardsModalOpen: false, game}
     default:
       return state;
   }

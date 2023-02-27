@@ -9,16 +9,24 @@ import {
 import {Game} from "../../game/models/Game";
 import {Player} from "../../game/models/Player";
 import {
-  AddPlayerAction, ClickTerritoryAction,
+  AddPlayerAction,
+  ClickTerritoryAction,
   SetGameObjectAction,
   CreatePlayersAction,
   RemoveLastPlayerAction,
-  SetPlayerAction, PlayerWantsToAttackAction, MoveSoldersAction, SetSettingsAction, CancelAction, ToggleViewCardsAction
+  SetPlayerAction,
+  PlayerWantsToAttackAction,
+  MoveSoldersAction,
+  SetSettingsAction,
+  CancelAction,
+  ToggleViewCardsAction,
+  PlayerOpenCardsAction
 } from "./gameActions";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
 import {SettingsInterface} from "../../game/constants/settingsConfig";
 import {PlayerDetails} from "../../game/models/PlayerDetails";
+import {Card} from "../../game/constants/cards";
 
 export const getLastNews = () => ({
   type: GET_LAST_NEWS,
@@ -79,3 +87,7 @@ export const toggleCardsModal = (): ToggleViewCardsAction => ({
   type: ReducerActionType.PLAYER_VIEW_CARDS,
 });
 
+export const openCards = (cards: Card[]): PlayerOpenCardsAction => ({
+  type: ReducerActionType.PLAYER_OPEN_CARDS,
+  payload: {cards}
+});

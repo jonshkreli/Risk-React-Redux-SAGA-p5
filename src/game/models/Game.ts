@@ -349,7 +349,7 @@ export class Game implements GamePhases, GameActions {
     private getSoldersFromCards(cards: Card[],messages: Message[]) {
         if(!this.canPlayerOpenCards()) {
             messages.push({message: `${this.playerTurn.name} have only ${this.playerTurn.cards}, minimum is 3`, origin: ["CARDS", "SOLDERS FROM CARDS"], type: "ERROR"})
-            throw `${this.playerTurn.name} have only ${this.playerTurn.cards}, minimum is 3`
+            throw `${this.playerTurn.name} have only ${this.playerTurn.cards.length}, minimum is 3`
         }
 
         if(this.settings.openCards.amount === "3" && cards.length > 3) {
