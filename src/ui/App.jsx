@@ -1,6 +1,6 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {SketchContainer} from "../sketch/SketchContainer";
-import {setPlayers} from "../redux/actions";
+import {exportGame, setPlayers} from "../redux/actions";
 import {useDispatch} from 'react-redux'
 import {Player} from "../game/models/Player";
 import {PlayersTable} from "./components/PlayersTable";
@@ -35,6 +35,23 @@ if(window.c < 10) {
             // document.body.removeChild(script2);
         }
     })
+
+    const handleKeyPress = useCallback((e) => {
+
+        if (e.key.toLowerCase() === 's' && e.ctrlKey && e.shiftKey) {
+            dispatch(exportGame())
+        }
+    }, []);
+
+    useEffect(() => {
+        // attach the event listener
+        document.addEventListener('keydown', handleKeyPress);
+
+        // remove the event listener
+        return () => {
+            document.removeEventListener('keydown', handleKeyPress);
+        };
+    }, [handleKeyPress]);
 
     return (
         <div>

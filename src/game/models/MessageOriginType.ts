@@ -10,6 +10,7 @@ export const MESSAGE_ORIGINS = [
         'MOVE SOLDERS',
         'CARDS',
         'SOLDERS FROM CARDS',
+        'EXPORT IMPORT',
 
     ] as const
 export type MessageOriginType = typeof MESSAGE_ORIGINS[number];

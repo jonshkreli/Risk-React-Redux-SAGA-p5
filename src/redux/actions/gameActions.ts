@@ -13,7 +13,8 @@ export type GameActions =
     SetRulesAction | SetSettingsAction |
     ClickTerritoryAction | ToggleViewCardsAction |
     PlayerWantsToAttackAction | PlayerWantsToMoveAction | MoveSoldersAction | CancelAction |
-    PlayerOpenCardsAction
+    PlayerOpenCardsAction |
+    ExportGameAction | ImportGameAction
 
 
 export interface SetGameObjectAction {
@@ -79,3 +80,11 @@ export interface PlayerOpenCardsAction {
     payload: { cards: Card[] }
 
 }
+export interface ExportGameAction {
+    type: ReducerActionType.EXPORT_GAME
+}
+export interface ImportGameAction {
+    type: ReducerActionType.IMPORT_GAME,
+    payload: { gameJSON: string }
+}
+

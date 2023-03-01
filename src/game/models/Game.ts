@@ -566,6 +566,32 @@ export class Game implements GamePhases, GameActions {
         } else return this.playerTurn.territories.length >= this.settings.TerritoriesToWin.value;
     }
 
+    // import export
+
+    exportGame(messages: Message[]) {
+        if(this.soldiersToPut !== 0 && this.initialSoldersToPut !== this.soldiersToPut) {
+            messages.push({message: `Can not export while distributing solders`, origin: ["EXPORT IMPORT"], type: "ERROR"})
+            return
+        }
+        if(this.playerWantToMoveSolders) {
+            messages.push({message: `Can not export while player is moving solders`, origin: ["EXPORT IMPORT"], type: "ERROR"})
+            return
+        }
+
+        const exportObj = {
+            players: this.players.map(p => ({...p, territories: p.territories.map(t => t.name)})),
+            playerTurn: {...this.playerTurn, territories: this.playerTurn.territories.map(t => t.name)},
+            initialSoldersToPut: this.initialSoldersToPut,
+            soldiersToPut: this.soldiersToPut,
+            currentState: this.currentState,
+            settings: this.settings,
+            rules: this.rules,
+        }
+
+        return JSON.stringify(exportObj)
+    }
+
+
     // pure functions
     private static canPlayerMoveFromTo(from: CountryName, to: CountryName, player: Player) {
         if(from === to) return {status: MoveFromToCases.SAME_TERRITORY}
@@ -625,6 +651,7 @@ export class Game implements GamePhases, GameActions {
             default: return 3
         }
     }
+
 
 }
 

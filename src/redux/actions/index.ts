@@ -20,7 +20,7 @@ import {
   SetSettingsAction,
   CancelAction,
   ToggleViewCardsAction,
-  PlayerOpenCardsAction
+  PlayerOpenCardsAction, ExportGameAction, ImportGameAction
 } from "./gameActions";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
@@ -90,4 +90,11 @@ export const toggleCardsModal = (): ToggleViewCardsAction => ({
 export const openCards = (cards: Card[]): PlayerOpenCardsAction => ({
   type: ReducerActionType.PLAYER_OPEN_CARDS,
   payload: {cards}
+});
+export const exportGame = (): ExportGameAction => ({
+  type: ReducerActionType.EXPORT_GAME,
+});
+export const importGame = (gameJSON: string): ImportGameAction => ({
+  type: ReducerActionType.IMPORT_GAME,
+  payload: {gameJSON}
 });

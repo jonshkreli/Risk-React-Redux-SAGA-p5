@@ -141,6 +141,14 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
     case ReducerActionType.PLAYER_OPEN_CARDS:
       game?.playerOpenCards(action.payload.cards, messages)
       return {...state, cardsModalOpen: false, game}
+    case ReducerActionType.EXPORT_GAME:
+      const exported = game?.exportGame(messages)
+      navigator.clipboard.writeText("This is the text to be copied").then(() => {
+        console.log(exported);
+      },() => {
+        messages.push({message: 'Failed to copy to clipboard', origin: ["EXPORT IMPORT"], type: "ERROR"})
+      });
+      return {...state, messages}
     default:
       return state;
   }
