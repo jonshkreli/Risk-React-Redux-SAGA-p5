@@ -1,26 +1,19 @@
-import {
-  CREATE_GAME_OBJECT,
-  DELETE_ALL_NEWS,
-  GET_ALL_NEWS,
-  GET_LAST_NEWS,
-  ReducerActionType,
-  UPDATE_PLAYERS_TABLE
-} from "../types";
+import {DELETE_ALL_NEWS, GET_ALL_NEWS, GET_LAST_NEWS, ReducerActionType, UPDATE_PLAYERS_TABLE} from "../types";
 import {Game} from "../../game/models/Game";
-import {Player} from "../../game/models/Player";
 import {
   AddPlayerAction,
-  ClickTerritoryAction,
-  SetGameObjectAction,
-  CreatePlayersAction,
-  RemoveLastPlayerAction,
-  SetPlayerAction,
-  PlayerWantsToAttackAction,
-  MoveSoldersAction,
-  SetSettingsAction,
   CancelAction,
-  ToggleViewCardsAction,
-  PlayerOpenCardsAction, ExportGameAction, ImportGameAction
+  ClickTerritoryAction,
+  CreatePlayersAction,
+  ExportGameAction,
+  ImportGameAction,
+  MoveSoldersAction,
+  PlayerOpenCardsAction,
+  RemoveLastPlayerAction,
+  SetGameObjectAction,
+  SetPlayerAction,
+  SetSettingsAction, ToggleImportModalAction,
+  ToggleViewCardsAction
 } from "./gameActions";
 import {CountryName} from "../../game/constants/CountryName";
 import {Point} from "../../game/constants/coordinates";
@@ -97,4 +90,7 @@ export const exportGame = (): ExportGameAction => ({
 export const importGame = (gameJSON: string): ImportGameAction => ({
   type: ReducerActionType.IMPORT_GAME,
   payload: {gameJSON}
+});
+export const toggleImportModal = (): ToggleImportModalAction => ({
+  type: ReducerActionType.TOGGLE_IMPORT_MODAL,
 });

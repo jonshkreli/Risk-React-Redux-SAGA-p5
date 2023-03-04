@@ -1,0 +1,18 @@
+.ViewCardsModal {
+
+  .MuiDialogContent-root {
+    .card {
+      width: 200px;
+      height: 200px;
+      border: 10px solid lightgray;
+
+      &.selected {
+        border-color: darkblue;
+      }
+      &.unselected {
+
+      }
+    }
+
+  }
+}

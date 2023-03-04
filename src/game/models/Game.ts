@@ -579,8 +579,8 @@ export class Game implements GamePhases, GameActions {
         }
 
         const exportObj = {
-            players: this.players.map(p => ({...p, territories: p.territories.map(t => t.name)})),
-            playerTurn: {...this.playerTurn, territories: this.playerTurn.territories.map(t => t.name)},
+            players: this.players.map(p => ({...p, color: p.color, hasOccupiedTerritory: p.hasOccupiedTerritory, territories: p.territories.map(t => ({...t, player: undefined}))})),
+            playerTurn: {...this.playerTurn, color: this.playerTurn.color, hasOccupiedTerritory: this.playerTurn.hasOccupiedTerritory, territories: this.playerTurn.territories.map(t => ({...t, player: undefined}))},
             initialSoldersToPut: this.initialSoldersToPut,
             soldiersToPut: this.soldiersToPut,
             currentState: this.currentState,
@@ -589,6 +589,49 @@ export class Game implements GamePhases, GameActions {
         }
 
         return JSON.stringify(exportObj)
+    }
+
+    static importGame(gameAsJSON: string, messages: Message[]) {
+        try {
+             const parsedGame = JSON.parse(gameAsJSON);
+
+
+             const game = new Game(parsedGame.players, parsedGame.settings, parsedGame.rules)
+            game._soldiersToPut = parsedGame.soldiersToPut
+            game.initialSoldersToPut = parsedGame.initialSoldersToPut
+            game._playerWantToMoveSolders = parsedGame.playerWantToMoveSolders
+            game.currentState = parsedGame.currentState
+
+            if(game.soldiersToPut !== 0 && game.initialSoldersToPut !== game.soldiersToPut) {
+                messages.push({message: `Can not export while distributing solders`, origin: ["EXPORT IMPORT"], type: "ERROR"})
+                return
+            }
+            if(game.playerWantToMoveSolders) {
+                messages.push({message: `Can not export while player is moving solders`, origin: ["EXPORT IMPORT"], type: "ERROR"})
+                return
+            }
+
+            game.players = parsedGame.players.map((p: Player) => {
+                const pl = new Player(p)
+                pl.cards = p.cards
+                pl.color = p.color
+                pl.hasOccupiedTerritory = p.hasOccupiedTerritory
+                pl.territories = p.territories.map(t => ({...t, player: pl}))
+                return pl
+            })
+
+            const playerTurn = game.players.find(p => p.name === parsedGame.playerTurn.name)
+            if(!playerTurn) {
+                messages.push({message: `Player that has turn was not found among players`, origin: ["EXPORT IMPORT"], type: "ERROR"})
+                return
+            }
+            game._playerTurn = playerTurn
+
+            return game
+        } catch (e) {
+            console.error(e)
+            messages.push({message: `Could not parse`, origin: ["EXPORT IMPORT"], type: "ERROR"})
+        }
     }
 
 

@@ -14,7 +14,7 @@ export type GameActions =
     ClickTerritoryAction | ToggleViewCardsAction |
     PlayerWantsToAttackAction | PlayerWantsToMoveAction | MoveSoldersAction | CancelAction |
     PlayerOpenCardsAction |
-    ExportGameAction | ImportGameAction
+    ExportGameAction | ImportGameAction | ToggleImportModalAction
 
 
 export interface SetGameObjectAction {
@@ -86,5 +86,8 @@ export interface ExportGameAction {
 export interface ImportGameAction {
     type: ReducerActionType.IMPORT_GAME,
     payload: { gameJSON: string }
+}
+export interface ToggleImportModalAction {
+    type: ReducerActionType.TOGGLE_IMPORT_MODAL,
 }
 

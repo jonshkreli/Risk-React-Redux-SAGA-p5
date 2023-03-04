@@ -20,7 +20,10 @@ export interface DefaultReducerStateType {
   solders: number,
   message: string,
   messages: Message[],
-  cardsModalOpen: boolean,
+  modals: {
+    cardsModalOpen: boolean,
+    importModalOpen: boolean,
+  }
 }
 
 const defaultReducerState: DefaultReducerStateType = {
@@ -35,7 +38,10 @@ const defaultReducerState: DefaultReducerStateType = {
   solders: 0,
   message: '',
   messages: [],
-  cardsModalOpen: false,
+  modals: {
+    cardsModalOpen: false,
+    importModalOpen: false,
+  }
 }
 
 const reducer = (state = defaultReducerState, action: GameActions): DefaultReducerStateType => {
@@ -137,18 +143,31 @@ const reducer = (state = defaultReducerState, action: GameActions): DefaultReduc
     case ReducerActionType.SET_SETTINGS:
       return {...state, settings: action.payload.settings}
     case ReducerActionType.PLAYER_VIEW_CARDS:
-      return {...state, cardsModalOpen: !state.cardsModalOpen}
+      return {...state, modals: {...state.modals, cardsModalOpen: !state.modals.cardsModalOpen}}
     case ReducerActionType.PLAYER_OPEN_CARDS:
       game?.playerOpenCards(action.payload.cards, messages)
-      return {...state, cardsModalOpen: false, game}
+      return {...state, modals: {...state.modals, cardsModalOpen: false}, game}
     case ReducerActionType.EXPORT_GAME:
-      const exported = game?.exportGame(messages)
-      navigator.clipboard.writeText("This is the text to be copied").then(() => {
-        console.log(exported);
-      },() => {
-        messages.push({message: 'Failed to copy to clipboard', origin: ["EXPORT IMPORT"], type: "ERROR"})
-      });
+      if(!game) return state
+
+      const exported = game.exportGame(messages)
+      if (exported) {
+        navigator.clipboard.writeText(exported).then(() => {
+          console.log(exported);
+          messages.push({message: 'Copied to clipboard', origin: ["EXPORT IMPORT"], type: "SUCCESS"})
+        }, () => {
+          messages.push({message: 'Failed to copy to clipboard', origin: ["EXPORT IMPORT"], type: "ERROR"})
+        });
+      }
       return {...state, messages}
+    case ReducerActionType.IMPORT_GAME:
+      const importedGame = Game.importGame(action.payload.gameJSON, messages)
+        if(importedGame) {
+          return {...state, game: importedGame, messages, modals: {...state.modals, importModalOpen: !state.modals.importModalOpen}}
+        }
+      return {...state, messages, modals: {...state.modals, importModalOpen: !state.modals.importModalOpen}}
+    case ReducerActionType.TOGGLE_IMPORT_MODAL:
+      return {...state, modals: {...state.modals, importModalOpen: !state.modals.importModalOpen}}
     default:
       return state;
   }

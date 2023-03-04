@@ -9,7 +9,7 @@ import "./style.scss";
 
 export const ViewCardsModal = () => {
     const dispatch = useDispatch()
-    const {game, cardsModalOpen, settings} = useSelector((state: DefaultReducerStateType) => state);
+    const {game, modals: {cardsModalOpen}, settings} = useSelector((state: DefaultReducerStateType) => state);
 
     const playerCards = useMemo(() => game?.playerTurn.cards, [game?.playerTurn.cards])
     const is3CardsMode = useMemo(() => settings.openCards.amount === "3", [settings.openCards.amount])

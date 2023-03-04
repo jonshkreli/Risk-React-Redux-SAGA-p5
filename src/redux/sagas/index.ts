@@ -5,7 +5,7 @@ import {
     LAST_NEWS_RECEIVED,
     GET_LAST_NEWS,
     ALL_NEWS_DELETED,
-    DELETE_ALL_NEWS, UPDATE_PLAYERS_TABLE, PLAYER_CHOOSE_ATTACKING_TO, ReducerActionType
+    DELETE_ALL_NEWS, UPDATE_PLAYERS_TABLE, ReducerActionType
 } from "../types";
 import {DefaultReducerStateType} from "../reducers";
 import {select} from 'redux-saga/effects';
